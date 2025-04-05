@@ -38,7 +38,7 @@ export function NavBar() {
           fixed
           bottom-5
           w-4/5
-          bg-gradient-to-b from-neutral-200/90 dark:from-neutral-800/90 to-neutral-600/90
+          bg-gradient-to-b from-neutral-200/90 dark:from-neutral-800/90 to-neutral-400/90 dark:to-neutral-600/90
           rounded-4xl
           p-4
           flex
