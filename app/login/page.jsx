@@ -1,10 +1,9 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../../lib/firebase';
 import { useRouter } from 'next/navigation'; // Import Next.js router for navigation
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
-import { withCoalescedInvoke } from 'next/dist/lib/coalesced-function';
 export default function Page() {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
@@ -17,7 +16,21 @@ export default function Page() {
 	const [weight, setWeight] = useState(''); // State to store weight
 	const [isLoggedIn, setIsLoggedIn] = useState(false); // State to track login status
 	const [isLogin, setIsLogin] = useState(true); // State to toggle between login and signup
+	const [user, setUser] = useState(null); // State to store user
 	const router = useRouter(); // Initialize the router
+
+	useEffect(() => {
+		const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+			if (currentUser) {
+				setUser(currentUser);
+				setIsLoggedIn(true); // Update the login status
+			} else {
+				setUser(null);
+				setIsLoggedIn(false); // Update the login status
+			}
+		});
+		return () => unsubscribe(); // Cleanup subscription on unmount
+	}, []);
 
 	const handleLogin = async () => {
 	  try {
@@ -27,6 +40,7 @@ export default function Page() {
   
 		console.log('User signed in:', user);
 		setIsLoggedIn(true); // Update the login status
+		setUser(user); // Set the user state
 		alert(`Welcome back, ${user.email}!`);
 	  } catch (error) {
 		if (error.code === 'auth/user-not-found') {
@@ -59,6 +73,9 @@ export default function Page() {
 		console.log('New user created and profile saved:', user);
 		alert(`Welcome, ${user.email}!`);
 		router.push('/'); // Redirect to home page after signup
+		setIsLoggedIn(true); // Update the login status
+		setIsLogin(true); // Set to true to indicate login mode
+		setUser(user); // Set the user state
 
 	  } catch (error) {
 		console.error('Error creating account:', error);
@@ -66,6 +83,31 @@ export default function Page() {
 	  }
 	};
 
+	// const handleLogout = async () => {
+	// 	try {
+	// 	  await signOut(auth);
+	// 	  // Redirect to login page after logout
+	// 	  router.push('/login');
+	// 	} catch (error) {
+	// 	  setError(error.message);
+	// 	  setTimeout(() => setError(''), 5000);
+	// 	}
+	//   };
+
+	  const handleLogout = () => {
+		// Perform logout logic
+		auth.signOut()
+		  .then(() => {
+			console.log('User logged out');
+			setEmail(''); // Clear the email field
+			setPassword(''); // Clear the password field
+			setIsLoggedIn(false); // Update the logged-in state
+		  })
+		  .catch((error) => {
+			console.error('Error logging out:', error);
+		  });
+	  };
+	  
 	const handleSubmit = (e) => {
 		e.preventDefault();
 		if (isLogin) {
@@ -143,7 +185,16 @@ export default function Page() {
 					onChange={(e) => setEthnicity(e.target.value)}
 					className="mb-4 px-4 py-2 border rounded-md"
 				/>
-				<button type="submit" className="buttonStyle" onClick={handleSignUp}>Sign Up</button>
+				<select
+					value={gender}
+					onChange = {(e) => setGender(e.target.value)}
+					className="mb-4 px-4 py-2 border rounded-md"
+				>
+					<option value = "" disabled> Select your gender</option>
+					<option value = "male">Male</option>
+					<option value = "female">Female</option>
+				</select>
+				setIsLogin(true);
 			</>
 		)}
 	</form>
@@ -151,18 +202,24 @@ export default function Page() {
         onClick={handleLogin}
         className="bg-rose-900 text-teal-600 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors"
       >
-        Sign in
+        {isLogin ? 'Login' : 'Sign Up'}
       </button>
 	  <div className="mt-4">
         <p className="text-gray-600">Don't have an account?</p>
         <button
-          onClick= {() => setIsLogin(false)}
+          onClick= {() => setIsLogin(!isLogin)}
           className="bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 transition-colors"
         >
-          Go to Signup
-        </button>
+          {isLogin ? 'Switch to Sign Up' : 'Switch to Login'}
+        </button> 
       </div>
+	  {isLoggedIn && user && <button onClick={handleLogout} className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Logout</button>}
+	  {user && (
+		<>
+			<p className = 'mt-4'>Logged in as: {user.email}</p>
+		</>
+	  )}
     </div>
 	);
 
-}
+	}
