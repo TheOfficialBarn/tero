@@ -1,10 +1,13 @@
-// For the AI ChatBot Ofc 😍
 'use client'
 import { Inter } from "next/font/google";
-import { useChat } from 'ai-sdk/google';
+import { useChat } from '@ai-sdk/google';
+
+// For the AI ChatBot Ofc 😍
+
+
 const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
+	variable: "--font-inter",
+	subsets: ["latin"],
 });
 
 export function SymptomChecker() {

@@ -36,13 +36,11 @@ body {
 
 .statusBarBlur {
   position: fixed;
-  top: 0;
-  left: 0;
   width: 100%;
   height: env(safe-area-inset-top);
   backdrop-filter: blur(6px);
   background-color: rgba(255, 255, 255, 0.0); /* Opacity looks best at 0.0*/ 
-  z-index: 100;
+  z-index: 20;
   pointer-events: none; /* ensures it doesn’t interfere with touch events */
 }
 
