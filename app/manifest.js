@@ -18,12 +18,12 @@ export default function manifest() {
 	  theme_color: '#000000',
 	  icons: [ // App icons
 		{
-		  src: '/tero_192.png',
+		  src: '/tero_192_2.png',
 		  sizes: '192x192',
 		  type: 'image/png',
 		},
 		{
-		  src: '/tero_512.png',
+		  src: '/tero_512_2.png',
 		  sizes: '512x512',
 		  type: 'image/png',
 		},
