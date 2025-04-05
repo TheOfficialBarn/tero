@@ -1,5 +1,6 @@
-'use client';
+"use client";
 import Image from "next/image";
+import UploadFile from "./components/UploadFile";
 
 // Custom components to use in sections
 const Component1 = () => (
@@ -15,7 +16,9 @@ const Component1 = () => (
       />
       <p className="list-inside text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
         You can download website as app ✨
-        <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">!</code>
+        <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
+          !
+        </code>
       </p>
     </main>
   </div>
@@ -47,10 +50,13 @@ export default function Home() {
         <Component1 />
       </section>
       <section className="h-screen flex items-center justify-center snap-start">
-        <Component2/>
+        <Component2 />
       </section>
       <section className="h-screen flex items-center justify-center snap-start">
         <Component3 />
+      </section>
+      <section className="h-screen flex items-center justify-center snap-start">
+        <UploadFile /> {/* Add the UploadFile component here */}
       </section>
     </div>
   );
