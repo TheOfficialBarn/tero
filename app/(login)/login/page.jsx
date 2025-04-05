@@ -53,7 +53,6 @@ export default function Page() {
 	}
 
 	const handleSignUp = async () => {
-		setIsLogin(false); // Set to false to indicate signup mode
 	  try{
 		const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 		const user = userCredential.user;
@@ -70,29 +69,12 @@ export default function Page() {
 			createdAt: new Date(),
 		});
 
-		console.log('New user created and profile saved:', user);
-		alert(`Welcome, ${user.email}!`);
 		router.push('/'); // Redirect to home page after signup
-		setIsLoggedIn(true); // Update the login status
-		setIsLogin(true); // Set to true to indicate login mode
-		setUser(user); // Set the user state
-
 	  } catch (error) {
 		console.error('Error creating account:', error);
 		alert('Error creating account. Please try again.');
 	  }
 	};
-
-	// const handleLogout = async () => {
-	// 	try {
-	// 	  await signOut(auth);
-	// 	  // Redirect to login page after logout
-	// 	  router.push('/login');
-	// 	} catch (error) {
-	// 	  setError(error.message);
-	// 	  setTimeout(() => setError(''), 5000);
-	// 	}
-	//   };
 
 	  const handleLogout = () => {
 		// Perform logout logic
