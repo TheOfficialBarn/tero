@@ -9,7 +9,7 @@ import { SymptomChecker } from "./components/symptom_checker";
 
 export default function Home() {
   // Change for debugging while FireBase Database isn't here
-  const [isLoggedIntoAccount, setIsLoggedIntoAccount] = useState(true);
+  const [isLoggedIntoAccount, setIsLoggedIntoAccount] = useState(false);
   const [isPatient, setIsPatient] = useState(false);
 
   return (

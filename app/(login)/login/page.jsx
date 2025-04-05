@@ -1,207 +1,273 @@
 'use client';
+
+import { Inter } from "next/font/google";
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+});
+
 import { useState, useEffect } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../../../lib/firebase';
-import { useRouter } from 'next/navigation'; // Import Next.js router for navigation
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
+import {
+	signInWithEmailAndPassword,
+	createUserWithEmailAndPassword,
+	signOut,
+	onAuthStateChanged,
+} from 'firebase/auth';
+
+// A reusable form component for both login and sign up
+function AuthForm({
+	isLogin,
+	onSubmit,
+	email,
+	setEmail,
+	password,
+	setPassword,
+	extraFields,
+	setExtraFields,
+}) {
+	return (
+		<form onSubmit={onSubmit} className="flex flex-col items-center w-full">
+			<input 
+				type="email" 
+				placeholder="Email" 
+				value={email} 
+				onChange={(e) => setEmail(e.target.value)} 
+				className="w-full mb-2 px-4 py-2 bg-white/30 rounded-md" 
+			/>
+			<input 
+				type="password" 
+				placeholder="Password" 
+				value={password} 
+				onChange={(e) => setPassword(e.target.value)} 
+				className="w-full mb-4 px-4 py-2 bg-white/30 rounded-md" 
+			/>
+			{!isLogin && (
+				<>
+					<input 
+						type="text" 
+						placeholder="Full Name" 
+						value={extraFields.name} 
+						onChange={(e) =>
+							setExtraFields({ ...extraFields, name: e.target.value })
+						} 
+						className="w-full mb-4 px-4 py-2 bg-white/30 rounded-md" 
+					/>
+					<input 
+						type="number" 
+						placeholder="Age" 
+						value={extraFields.age} 
+						onChange={(e) =>
+							setExtraFields({ ...extraFields, age: e.target.value })
+						} 
+						className="w-full mb-4 px-4 py-2 bg-white/30 rounded-md" 
+					/>
+					<input 
+						type="number" 
+						placeholder="Weight (lbs)" 
+						value={extraFields.weight} 
+						onChange={(e) =>
+							setExtraFields({ ...extraFields, weight: e.target.value })
+						} 
+						className="w-full mb-4 px-4 py-2 bg-white/30 rounded-md" 
+					/>
+					<input 
+						type="tel" 
+						placeholder="Phone Number" 
+						value={extraFields.phone} 
+						onChange={(e) =>
+							setExtraFields({ ...extraFields, phone: e.target.value })
+						} 
+						className="w-full mb-4 px-4 py-2 bg-white/30 rounded-md" 
+					/>
+					<select
+						value={extraFields.race}
+						onChange={(e) =>
+							setExtraFields({ ...extraFields, race: e.target.value })
+						}
+						className="w-full mb-4 px-4 py-2 bg-white/30 rounded-md"
+					>
+						<option value="" disabled>Race</option>
+						<option value="white">White</option>
+						<option value="black">Black</option>
+						<option value="asian">Asian</option>
+						<option value="native american">Native American</option>
+						<option value="other">Other</option>
+					</select>
+					<input 
+						type="text" 
+						placeholder="Ethnicity" 
+						value={extraFields.ethnicity} 
+						onChange={(e) =>
+							setExtraFields({ ...extraFields, ethnicity: e.target.value })
+						} 
+						className="w-full mb-4 px-4 py-2 bg-white/30 rounded-md" 
+					/>
+					<select
+						value={extraFields.sex}
+						onChange={(e) =>
+							setExtraFields({ ...extraFields, sex: e.target.value })
+						}
+						className="w-full mb-4 px-4 py-2 bg-white/30 rounded-md"
+					>
+						<option value="" disabled>Sex</option>
+						<option value="male">Male</option>
+						<option value="female">Female</option>
+					</select>
+				</>
+			)}
+		</form>
+	);
+}
+
 export default function Page() {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
-	const [age, setAge] = useState(''); // State to store age
-	const [gender, setGender] = useState('');
-	const [name, setName] = useState(''); // State to store name
-	const [phone, setPhone] = useState(''); // State to store phone number	
-	const [ethnicity, setEthnicity] = useState('');
-	const [race, setRace] = useState('');
-	const [weight, setWeight] = useState(''); // State to store weight
-	const [isLoggedIn, setIsLoggedIn] = useState(false); // State to track login status
-	const [isLogin, setIsLogin] = useState(true); // State to toggle between login and signup
-	const [user, setUser] = useState(null); // State to store user
-	const router = useRouter(); // Initialize the router
+	const [extraFields, setExtraFields] = useState({
+		name: '',
+		age: '',
+		sex: '',
+		phone: '',
+		ethnicity: '',
+		race: '',
+		weight: '',
+	});
+	const [user, setUser] = useState(null);
+	const [isLogin, setIsLogin] = useState(true);
+	const router = useRouter();
 
 	useEffect(() => {
 		const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-			if (currentUser) {
-				setUser(currentUser);
-				setIsLoggedIn(true); // Update the login status
-			} else {
-				setUser(null);
-				setIsLoggedIn(false); // Update the login status
-			}
+			setUser(currentUser);
 		});
-		return () => unsubscribe(); // Cleanup subscription on unmount
+		return unsubscribe;
 	}, []);
 
-	const handleLogin = async () => {
-	  try {
-		// Sign in the user with email and password
-		const userCredential = await signInWithEmailAndPassword(auth, email, password);
-		const user = userCredential.user;
-  
-		console.log('User signed in:', user);
-		setIsLoggedIn(true); // Update the login status
-		setUser(user); // Set the user state
-		alert(`Welcome back, ${user.email}!`);
-	  } catch (error) {
-		if (error.code === 'auth/user-not-found') {
-		  alert('U dont exist srry blud');
-		} else {
-		  console.error('Error signing in:', error);
-		  alert('Error signing in. Please try again.');
+	const handleLogin = async (e) => {
+		e && e.preventDefault();
+		try {
+			const userCredential = await signInWithEmailAndPassword(
+				auth,
+				email,
+				password
+			);
+			const user = userCredential.user;
+			console.log('User signed in:', user);
+			setUser(user);
+			alert(`Welcome back, ${user.email}!`);
+		} catch (error) {
+			if (error.code === 'auth/user-not-found') {
+				alert('User not found.');
+			} else {
+				console.error('Error signing in:', error);
+				alert('Error signing in. Please try again.');
+			}
 		}
-		};
-	}
-
-	const handleSignUp = async () => {
-	  try{
-		const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-		const user = userCredential.user;
-
-		await setDoc(doc(db, 'users', user.uid), {
-			email: user.email,
-			name: name,
-			age: age,
-			gender: gender,
-			race: race,
-			ethnicity: ethnicity,
-			weight: weight,
-			phone: phone,
-			createdAt: new Date(),
-		});
-
-		router.push('/'); // Redirect to home page after signup
-	  } catch (error) {
-		console.error('Error creating account:', error);
-		alert('Error creating account. Please try again.');
-	  }
 	};
 
-	  const handleLogout = () => {
-		// Perform logout logic
-		auth.signOut()
-		  .then(() => {
+	const handleSignUp = async (e) => {
+		e && e.preventDefault();
+		try {
+			const userCredential = await createUserWithEmailAndPassword(
+				auth,
+				email,
+				password
+			);
+			const user = userCredential.user;
+			await setDoc(doc(db, 'users', user.uid), {
+				email: user.email,
+				name: extraFields.name,
+				age: extraFields.age,
+				sex: extraFields.sex,
+				race: extraFields.race,
+				ethnicity: extraFields.ethnicity,
+				weight: extraFields.weight,
+				phone: extraFields.phone,
+				createdAt: new Date(),
+			});
+			setUser(user);
+			router.push('/');
+		} catch (error) {
+			console.error('Error creating account:', error);
+			alert('Error creating account. Please try again.');
+		}
+	};
+
+	const handleLogout = async () => {
+		try {
+			await signOut(auth);
 			console.log('User logged out');
-			setEmail(''); // Clear the email field
-			setPassword(''); // Clear the password field
-			setIsLoggedIn(false); // Update the logged-in state
-		  })
-		  .catch((error) => {
+			setEmail('');
+			setPassword('');
+			setExtraFields({
+				name: '',
+				age: '',
+				sex: '',
+				phone: '',
+				ethnicity: '',
+				race: '',
+				weight: '',
+			});
+			setUser(null);
+		} catch (error) {
 			console.error('Error logging out:', error);
-		  });
-	  };
-	  
+		}
+	};
+
 	const handleSubmit = (e) => {
 		e.preventDefault();
-		if (isLogin) {
-		  handleLogin();
-		} else {
-		  handleSignUp();
-		}
-	  };
+		isLogin ? handleLogin() : handleSignUp();
+	};
 
-	return (
-	<div>
-      <h1>{isLogin ? 'Login' : 'Sign Up'}</h1>
-	  <form onSubmit = {handleSubmit} className="flex flex-col items-center">
-      	<input
-        	type="email"
-        	placeholder="Email"
-        	value={email}
-        	onChange={(e) => setEmail(e.target.value)}
-        	className="mb-2 px-4 py-2 border rounded-md"
-      	/>
-      	<input
-        	type="password"
-        	placeholder="Password"
-        	value={password}
-        	onChange={(e) => setPassword(e.target.value)}
-        	className="mb-4 px-4 py-2 border rounded-md"
-      	/>
-		{!isLogin && (
-			<>
-				<input
-					type="name"
-					placeholder="Enter your Name"
-					value={name}
-					onChange={(e) => setName(e.target.value)}
-					className="mb-4 px-4 py-2 border rounded-md"
+	return user ? (
+		<section className="h-screen flex justify-center items-center">
+			<div className="bg-[rgba(130,130,130,0.5)] rounded-3xl p-6 m-2 flex flex-col items-center justify-center ">
+			<h3 className={`text-white text-3xl font-bold mb-4 text-center ${inter.variable}`}>Logged In 🥳</h3>
+			<button
+				onClick={handleLogout}
+				className="w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors mt-4"
+			>
+				Logout
+			</button>
+			<p className="mt-4">Logged in as: {user.email}</p>
+			</div>
+		</section>
+	) : (
+		<section className="h-screen flex justify-center items-center">
+			<div className="bg-[rgba(130,130,130,0.5)] rounded-3xl p-6 m-2 flex flex-col items-center justify-center ">
+				<h3 className={`text-white text-3xl font-bold mb-4 text-center ${inter.variable}`}>
+					Secure. Easy.
+				</h3>
+				<h3 className={`text-white text-3xl font-bold mb-4 text-center ${inter.variable}`}>
+					Blazing Fast.
+				</h3>
+				<AuthForm
+					isLogin={isLogin}
+					onSubmit={handleSubmit}
+					email={email}
+					setEmail={setEmail}
+					password={password}
+					setPassword={setPassword}
+					extraFields={extraFields}
+					setExtraFields={setExtraFields}
 				/>
-				<input
-					type="age"
-					placeholder="Enter your age"
-					value={age}
-					onChange={(e) => setAge(e.target.value)}
-					className="mb-4 px-4 py-2 border rounded-md"
-				/>
-				<input
-					type="weight"
-					placeholder="Enter your weight (lbs)"
-					value={weight}
-					onChange={(e) => setWeight(e.target.value)}
-					className="mb-4 px-4 py-2 border rounded-md"
-				/>
-				<input
-					type="phone"
-					placeholder="Enter your phone number"
-					value={phone}
-					onChange={(e) => setPhone(e.target.value)}
-					className="mb-4 px-4 py-2 border rounded-md"
-				/>
-				<select
-					value={race}
-					onChange ={(e) => setRace(e.target.value)}
-					className="mb-4 px-4 py-2 border rounded-md"
+				<button
+					onClick={isLogin ? handleLogin : handleSignUp}
+					className="w-full px-4 py-2 rounded-md bg-black text-white hover:bg-gray-700 transition-colors"
 				>
-					<option value = "" disabled> Select your race</option>
-					<option value = "white">White</option>
-					<option value = "black">Black</option>
-					<option value = "asian">Asian</option>
-					<option value = "hispanic">Hispanic</option>
-					<option value = "native american">Native American</option>
-					<option value = "other">Other</option>
-				</select>
-				<input
-					type="ethnicity"
-					placeholder="Enter your ethnicity"
-					value={ethnicity}
-					onChange={(e) => setEthnicity(e.target.value)}
-					className="mb-4 px-4 py-2 border rounded-md"
-				/>
-				<select
-					value={gender}
-					onChange = {(e) => setGender(e.target.value)}
-					className="mb-4 px-4 py-2 border rounded-md"
-				>
-					<option value = "" disabled> Select your gender</option>
-					<option value = "male">Male</option>
-					<option value = "female">Female</option>
-				</select>
-				setIsLogin(true);
-			</>
-		)}
-	</form>
-      <button
-        onClick={isLogin ? handleLogin : handleSignUp}
-        className="bg-rose-900 text-teal-600 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors"
-      >
-        {isLogin ? 'Login' : 'Sign Up'}
-      </button>
-	  <div className="mt-4">
-        <p className="text-gray-600">Don't have an account?</p>
-        <button
-          onClick= {() => setIsLogin(!isLogin)}
-          className="bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 transition-colors"
-        >
-          {isLogin ? 'Switch to Sign Up' : 'Switch to Login'}
-        </button> 
-      </div>
-	  {isLoggedIn && user && <button onClick={handleLogout} className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">Logout</button>}
-	  {user && (
-		<>
-			<p className = 'mt-4'>Logged in as: {user.email}</p>
-		</>
-	  )}
-    </div>
+					{isLogin ? 'Login' : 'Sign Up'}
+				</button>
+				<div className="mt-4 w-full">
+					<button
+						onClick={() => setIsLogin(!isLogin)}
+						className="w-full px-4 py-2 rounded-md bg-white text-black hover:bg-gray-200 transition-colors"
+					>
+						{isLogin ? 'Switch to Sign Up' : 'Switch to Login'}
+					</button>
+				</div>
+			</div>
+		</section>
 	);
-
-	}
+}
