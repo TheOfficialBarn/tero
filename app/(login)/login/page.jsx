@@ -181,7 +181,7 @@ export default function Page() {
 		)}
 	</form>
       <button
-        onClick={handleLogin}
+        onClick={isLogin ? handleLogin : handleSignUp}
         className="bg-rose-900 text-teal-600 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors"
       >
         {isLogin ? 'Login' : 'Sign Up'}
