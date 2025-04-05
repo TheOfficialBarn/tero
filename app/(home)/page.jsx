@@ -8,6 +8,7 @@ import { Profile } from "./components/profile";
 import { SymptomChecker } from "./components/symptom_checker";
 import { useAuth } from "@/context/AuthContext";
 
+// This is the entry point of our PWA
 export default function Home() {
   // Change for debugging while FireBase Database isn't here
   const { user, loading } = useAuth();
