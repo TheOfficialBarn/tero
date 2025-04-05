@@ -1,5 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { PFP } from "./components/pfp";
+import { NavBar } from "./components/navbar";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -87,42 +89,8 @@ export default async function RootLayout({ children }) {
             <div className="statusBarBlur" />
             <PFP/>
             {children}
-            <NavBar />
+            <NavBar/>
         </body>
     </html>
   );
-}
-
-function NavBar() {
-  return (
-    <div className="flex justify-center w-full">
-        <nav
-        className="
-          sm:hidden
-          fixed
-          bottom-5
-          w-4/5
-          bg-gradient-to-b from-gray-200 dark:from-gray-800 to-gray-600
-          rounded-4xl
-          p-4
-          flex
-          justify-center
-          gap-4
-          shadow-lg
-        "
-        >
-            <button>Home</button>
-            <button>Search</button>
-            <button>Profile</button>
-        </nav>
-    </div>
-  );
-}
-
-function PFP() {
-  return (
-    <div className="w-15 h-15 bg-white fixed top-12 right-3 rounded-full shadow-2xl flex items-center justify-center p-1">
-      <div className="w-full h-full rounded-full bg-black"></div>
-    </div>
-  )
 }

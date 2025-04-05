@@ -7,7 +7,7 @@ const Component1 = () => (
     <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
       <Image
         className="dark:invert"
-        src="/tero_192.png"
+        src="/tero_512.png"
         alt="Logo"
         width={180}
         height={180}
