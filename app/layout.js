@@ -12,13 +12,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-    title: "waki cards",
-    description: "the worlds best flashcard",
+    title: "Tero SMD",
+    description: "The Check-In Process, Simplified",
     icons: {
-        icon: [{ url: "/icon-192x192.png", sizes: "192x192", type: "image/png" }],
-        apple: [{ url: "/icon-192x192.png" }],
+        icon: [{ url: "/tero_192.png", sizes: "192x192", type: "image/png" }],
+        apple: [{ url: "/tero_192.png" }],
     },
-    appleTouchIcon: "/icon-192x192.png",
+    appleTouchIcon: "/tero_192.png",
     appleWebApp: {
         capable: true,
         statusBarStyle: "black-translucent",
