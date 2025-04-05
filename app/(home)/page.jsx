@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import UploadFile from "./components/UploadFile";
+import UploadFile from "/app/components/UploadFile";
 
 // Custom components to use in sections
 const Component1 = () => (
