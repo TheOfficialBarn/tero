@@ -17,10 +17,10 @@ export const metadata = {
     title: "Tero SMD",
     description: "The Check-In Process, Simplified",
     icons: {
-        icon: [{ url: "/tero_192.png", sizes: "192x192", type: "image/png" }],
-        apple: [{ url: "/tero_192.png" }],
+        icon: [{ url: "/tero_192_2.png", sizes: "192x192", type: "image/png" }],
+        apple: [{ url: "/tero_192_2.png" }],
     },
-    appleTouchIcon: "/tero_192.png",
+    appleTouchIcon: "/tero_192_2.png",
     appleWebApp: {
         capable: true,
         statusBarStyle: "black-translucent",
@@ -88,8 +88,10 @@ export default async function RootLayout({ children }) {
             {/* Status bar blur overlay */}
             <div className="statusBarBlur" />
             <PFP/>
+            <div className="h-screen overflow-y-scroll snap-y snap-mandatory">
             {children}
             <NavBar/>
+            </div>
         </body>
     </html>
   );
