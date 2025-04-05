@@ -1,18 +1,25 @@
 "use client";
 import Image from "next/image";
 import { Inter } from "next/font/google";
+import UploadFile from "../components/UploadFile";
+import FileList from "../components/FileList";
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-  });
+});
 
 function Welcome() {
   return (
     <div className="justify-items-center p-6 font-[family-name:var(--font-geist-sans)]">
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
         {/* WELCOME TO TERO */}
-        <h1 className={`text-5xl font-bold ${inter.variable}`}>Welcome to <span className="bg-gradient-to-r from-yellow-300 via-orange-500 to-red-700 bg-clip-text text-transparent">Tero.</span></h1>
+        <h1 className={`text-5xl font-bold ${inter.variable}`}>
+          Welcome to{" "}
+          <span className="bg-gradient-to-r from-yellow-300 via-orange-500 to-red-700 bg-clip-text text-transparent">
+            Tero.
+          </span>
+        </h1>
         {/* OUR BIRD!!!!!! */}
         <Image src="/tero_512_2.png" alt="Logo" width={180} height={180} priority/>
         <div className="bg-[rgba(130,130,130,0.5)] rounded-xl p-4">
@@ -25,7 +32,7 @@ function Welcome() {
   );
 }
 
-function About() { 
+function About() {
   return (
     <div className="bg-[rgba(130,130,130,0.5)] rounded-3xl p-6 m-2 flex flex-col items-center justify-center h-5/8">
       <h3 className={`text-white text-3xl font-bold mb-4 ${inter.variable}`}>✨ About Us ✨</h3>
@@ -54,11 +61,18 @@ export default function Home() {
         <Welcome />
       </section>
       <section className="h-screen flex items-center justify-center snap-start">
-        <About/>
+        <About />
       </section>
       <section className="h-screen flex items-center justify-center snap-start">
         <OurMission />
       </section>
+      <section className="h-screen flex items-center justify-center snap-start">
+        <UploadFile />
+      </section>   
+      <section className="h-screen flex items-center justify-center snap-start">
+        <FileList />
+      </section>
+
     </>
   );
 }
