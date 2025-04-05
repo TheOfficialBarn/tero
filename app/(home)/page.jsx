@@ -1,50 +1,60 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import UploadFile from "../components/upload_file";
 import FileList from "../components/file_list";
 import { AboutTero } from "./components/about_tero";
 import { Profile } from "./components/profile";
 import { SymptomChecker } from "./components/symptom_checker";
 import { useAuth } from "@/context/AuthContext";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
-// This is the entry point of our PWA
 export default function Home() {
-  // Change for debugging while FireBase Database isn't here
   const { user, loading } = useAuth();
-  const [isPatient] = useState(true);
+  const [isPatient, setIsPatient] = useState(null);
+
+  useEffect(() => {
+    const fetchUserType = async () => {
+      if (user) {
+        // Check if a document exists in the "users" collection.
+        const patientDocRef = doc(db, "users", user.uid);
+        const patientDocSnap = await getDoc(patientDocRef);
+        setIsPatient(patientDocSnap.exists());
+      }
+    };
+    fetchUserType();
+  }, [user]);
+
+  if (!user && !loading) {
+    return <AboutTero />;
+  }
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <>
-      {!user && !loading ? (
+      {!isPatient ? (
         <>
-          {/* If you aren't Logged In, AboutTero is shown */}
-          <AboutTero />
+          {/* IS DOCTOR */}
+          <section className="h-screen flex items-center justify-center snap-start">
+            <UploadFile />
+          </section>
+          <section className="h-screen flex items-center justify-center snap-start">
+            <FileList />
+          </section>
         </>
       ) : (
         <>
-          {/* If logged-in, we need to know if you are DOCTOR or PATIENT */}
-          {!isPatient ? (
-            <>
-              {/* Is DOCTOR */}
-              <section className="h-screen flex items-center justify-center snap-start">
-                <UploadFile />
-              </section>
-              <section className="h-screen flex items-center justify-center snap-start">
-                <FileList />
-              </section>
-            </>
-          ) : (
-            <>
-              {/* IS PATIENT */}
-              <section className="h-screen flex items-center justify-center snap-start">
-                <Profile/>
-              </section>
-              <section className="h-screen flex items-center justify-center snap-start">
-                <SymptomChecker/>
-              </section>
-            </>
-          )}
+          {/* IS PATIENT */}
+          <section className="h-screen flex items-center justify-center snap-start">
+            <Profile />
+          </section>
+          <section className="h-screen flex items-center justify-center snap-start">
+            <SymptomChecker />
+          </section>
         </>
       )}
     </>

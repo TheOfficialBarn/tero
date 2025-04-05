@@ -1,11 +1,13 @@
 'use client';
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 // Import SVGs as components (SVGR must be configured)
 import HomeIcon from "@/public/home.svg";
 import AssignmentIcon from "@/public/assignment.svg";
 import { useAuth } from "@/context/AuthContext";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 const patientNavItems = [
   { path: '/', name: 'Home' },
@@ -19,10 +21,27 @@ const doctorNavItems = [
 
 export function NavBar() {
   const { user, loading } = useAuth();
-  const [isPatient] = useState(true);
+  const [isPatient, setIsPatient] = useState(null);
   const pathname = usePathname(); // This is so that we know which tab to highlight 😼
 
+  useEffect(() => {
+    const fetchUserType = async () => {
+      if (user) {
+        // Try to get a document from the 'users' collection
+        const patientDocRef = doc(db, 'users', user.uid);
+        const patientDocSnap = await getDoc(patientDocRef);
+        if (patientDocSnap.exists()) {
+          setIsPatient(true);
+        } else {
+          setIsPatient(false);
+        }
+      }
+    };
+    fetchUserType();
+  }, [user]);
+
   if (!loading && !user) return null;
+  if (loading) return <div>Loading...</div>;
 
   const navItems = isPatient ? patientNavItems : doctorNavItems;
   const activeFill = "#ffffff";   // Active tab fill color 

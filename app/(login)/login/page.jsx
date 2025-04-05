@@ -183,14 +183,16 @@ export default function Page() {
 				password
 			);
 			const user = userCredential.user;
-			// Prepare user data based on user type
-			let userData = {
+			 // Base user data used for both types
+			const userData = {
 				email: user.email,
 				name: extraFields.name,
 				createdAt: new Date(),
 			};
+
 			if (isPatient) {
-				userData = {
+				// Additional fields for patients
+				const patientData = {
 					...userData,
 					age: extraFields.age,
 					sex: extraFields.sex,
@@ -198,9 +200,12 @@ export default function Page() {
 					ethnicity: extraFields.ethnicity,
 					weight: extraFields.weight,
 					phone: extraFields.phone,
-				};
+					};
+				await setDoc(doc(db, 'users', user.uid), patientData);
+			} else {
+				// For hosts, use the hosts collection; extra patient fields are omitted.
+				await setDoc(doc(db, 'hosts', user.uid), userData);
 			}
-			await setDoc(doc(db, 'users', user.uid), userData);
 			setUser(user);
 			router.push('/');
 		} catch (error) {
