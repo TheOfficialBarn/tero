@@ -7,64 +7,56 @@ import { useState } from "react";
 // If you are a Patient, you will see Home tab & a Records Tab
 // 
 // We achieve this through FireBase ✨Context✨ 
-
-
+// 
+// WE ONLY RETURN THE NAVBAR IF USER IS LOGGED-IN
 
 const patientNavItems = [
-	{path: '/', name: 'Home'},
-	{path: '/records', name: 'Records'}
-]
+  { path: '/', name: 'Home' },
+  { path: '/records', name: 'Records' }
+];
 
 const doctorNavItems = [
-	{path: '/', name: 'Home'},
-	{path: '/check-in', name: 'Check-In'}
-]
+  { path: '/', name: 'Home' },
+  { path: '/check-in', name: 'Check-In' }
+];
 
 export function NavBar() {
-	// In-place of FireBase context, FOR NOW🚨 we are using useState
-	const [isLoggedIntoAccount, setIsLoggedIntoAccount]  = useState(true);
-	const [isPatient, setIsPatient] = useState(false);
+  // In-place of FireBase context, FOR NOW🚨 we are using useState
+  const [isLoggedIntoAccount] = useState(true);
+  const [isPatient] = useState(false);
 
-	// WE RETURN THE NAVBAR ONLY IF THE USER IS LOGGED INTO THE ACCOUNT
-	if(isLoggedIntoAccount) {
-		return (
-			<div className="flex justify-center w-full">
-				<nav
-				className="
-				sm:hidden
-				fixed
-				bottom-5
-				w-4/5
-				bg-gradient-to-b from-gray-200 dark:from-gray-800 to-gray-600
-				rounded-4xl
-				p-4
-				flex
-				justify-center
-				gap-4
-				shadow-lg
-				"
-				>
-				
-				{isPatient ? patientNavItems.map(({path, name}) => (
-					<Link
-					key={path}
-					href={path}
-					className="transition-all hover:text-neutral-300 flex align-middle relative"
-					>
-					{name}
-					</Link>
-				)) : doctorNavItems.map(({path, name}) => (
-					<Link
-					key={path}
-					href={path}
-					className="transition-all hover:text-neutral-300 flex align-middle relative"
-					>
-					{name}
-					</Link>
-				))}
+  if (!isLoggedIntoAccount) return null;
 
-				</nav>
-			</div>
-		);
-	}
+  // Below sets the navItems to the proper array.
+  const navItems = isPatient ? patientNavItems : doctorNavItems;
+
+  return (
+    <div className="flex justify-center w-full">
+      <nav
+        className="
+          sm:hidden
+          fixed
+          bottom-5
+          w-4/5
+          bg-gradient-to-b from-neutral-200/90 dark:from-neutral-800/90 to-neutral-600/90
+          rounded-4xl
+          p-4
+          flex
+          justify-center
+          gap-4
+          shadow-lg
+        "
+      >
+        {navItems.map(({ path, name }) => (
+          <Link
+            key={path}
+            href={path}
+            className="transition-all text-white hover:text-neutral-300 flex align-middle relative"
+          >
+            {name}
+          </Link>
+        ))}
+      </nav>
+    </div>
+  );
 }
