@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ethersproject/providers": "^5.8.0",
+    "ethers": "^5.8.0",
     "next": "^15.2.4",
     "pinata": "^2.2.0",
     "react": "^19.1.0",
