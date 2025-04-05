@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../../lib/firebase';
+import { auth, db } from '../../../lib/firebase';
 import { useRouter } from 'next/navigation'; // Import Next.js router for navigation
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 export default function Page() {
