@@ -1,16 +1,20 @@
 'use client';
 import Image from "next/image";
+import { Inter } from "next/font/google";
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  });
 
 function Welcome() {
   return (
     <div className="justify-items-center p-6 font-[family-name:var(--font-geist-sans)]">
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <h1>Welcome to <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">Tero</span></h1>
-        <Image className="dark:invert" src="/tero_512.png" alt="Logo" width={180} height={180} priority/>
-        <p className="list-inside text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          You can download website as app ✨
-          <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">!</code>
-        </p>
+        {/* WELCOME TO TERO */}
+        <h1 className={`text-5xl font-bold ${inter.variable}`}>Welcome to <span className="bg-gradient-to-r from-yellow-300 via-orange-500 to-red-700 bg-clip-text text-transparent">Tero.</span></h1>
+        {/* OUR BIRD!!!!!! */}
+        <Image src="/tero_512_2.png" alt="Logo" width={180} height={180} priority/>
       </main>
     </div>
   );
