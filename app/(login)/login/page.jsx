@@ -27,6 +27,7 @@ function AuthForm({
 	setPassword,
 	extraFields,
 	setExtraFields,
+	isPatient, // added
 }) {
 	return (
 		<form onSubmit={onSubmit} className="flex flex-col items-center w-full">
@@ -55,67 +56,72 @@ function AuthForm({
 						} 
 						className="w-full mb-4 px-4 py-2 bg-white/30 rounded-md" 
 					/>
-					<input 
-						type="number" 
-						placeholder="Age" 
-						value={extraFields.age} 
-						onChange={(e) =>
-							setExtraFields({ ...extraFields, age: e.target.value })
-						} 
-						className="w-full mb-4 px-4 py-2 bg-white/30 rounded-md" 
-					/>
-					<input 
-						type="number" 
-						placeholder="Weight (lbs)" 
-						value={extraFields.weight} 
-						onChange={(e) =>
-							setExtraFields({ ...extraFields, weight: e.target.value })
-						} 
-						className="w-full mb-4 px-4 py-2 bg-white/30 rounded-md" 
-					/>
-					<input 
-						type="tel" 
-						placeholder="Phone Number" 
-						value={extraFields.phone} 
-						onChange={(e) =>
-							setExtraFields({ ...extraFields, phone: e.target.value })
-						} 
-						className="w-full mb-4 px-4 py-2 bg-white/30 rounded-md" 
-					/>
-					<select
-						value={extraFields.race}
-						onChange={(e) =>
-							setExtraFields({ ...extraFields, race: e.target.value })
-						}
-						className="w-full mb-4 px-4 py-2 bg-white/30 rounded-md"
-					>
-						<option value="" disabled>Race</option>
-						<option value="white">White</option>
-						<option value="black">Black</option>
-						<option value="asian">Asian</option>
-						<option value="native american">Native American</option>
-						<option value="other">Other</option>
-					</select>
-					<input 
-						type="text" 
-						placeholder="Ethnicity" 
-						value={extraFields.ethnicity} 
-						onChange={(e) =>
-							setExtraFields({ ...extraFields, ethnicity: e.target.value })
-						} 
-						className="w-full mb-4 px-4 py-2 bg-white/30 rounded-md" 
-					/>
-					<select
-						value={extraFields.sex}
-						onChange={(e) =>
-							setExtraFields({ ...extraFields, sex: e.target.value })
-						}
-						className="w-full mb-4 px-4 py-2 bg-white/30 rounded-md"
-					>
-						<option value="" disabled>Sex</option>
-						<option value="male">Male</option>
-						<option value="female">Female</option>
-					</select>
+					{/* Only render additional fields for patients */}
+					{isPatient && (
+						<>
+							<input 
+								type="number" 
+								placeholder="Age" 
+								value={extraFields.age} 
+								onChange={(e) =>
+									setExtraFields({ ...extraFields, age: e.target.value })
+								} 
+								className="w-full mb-4 px-4 py-2 bg-white/30 rounded-md" 
+							/>
+							<input 
+								type="number" 
+								placeholder="Weight (lbs)" 
+								value={extraFields.weight} 
+								onChange={(e) =>
+									setExtraFields({ ...extraFields, weight: e.target.value })
+								} 
+								className="w-full mb-4 px-4 py-2 bg-white/30 rounded-md" 
+							/>
+							<input 
+								type="tel" 
+								placeholder="Phone Number" 
+								value={extraFields.phone} 
+								onChange={(e) =>
+									setExtraFields({ ...extraFields, phone: e.target.value })
+								} 
+								className="w-full mb-4 px-4 py-2 bg-white/30 rounded-md" 
+							/>
+							<select
+								value={extraFields.race}
+								onChange={(e) =>
+									setExtraFields({ ...extraFields, race: e.target.value })
+								}
+								className="w-full mb-4 px-4 py-2 bg-white/30 rounded-md"
+							>
+								<option value="" disabled>Race</option>
+								<option value="white">White</option>
+								<option value="black">Black</option>
+								<option value="asian">Asian</option>
+								<option value="native american">Native American</option>
+								<option value="other">Other</option>
+							</select>
+							<input 
+								type="text" 
+								placeholder="Ethnicity" 
+								value={extraFields.ethnicity} 
+								onChange={(e) =>
+									setExtraFields({ ...extraFields, ethnicity: e.target.value })
+								} 
+								className="w-full mb-4 px-4 py-2 bg-white/30 rounded-md" 
+							/>
+							<select
+								value={extraFields.sex}
+								onChange={(e) =>
+									setExtraFields({ ...extraFields, sex: e.target.value })
+								}
+								className="w-full mb-4 px-4 py-2 bg-white/30 rounded-md"
+							>
+								<option value="" disabled>Sex</option>
+								<option value="male">Male</option>
+								<option value="female">Female</option>
+							</select>
+						</>
+					)}
 				</>
 			)}
 		</form>
@@ -136,6 +142,7 @@ export default function Page() {
 	});
 	const [user, setUser] = useState(null);
 	const [isLogin, setIsLogin] = useState(true);
+	const [isPatient, setIsPatient] = useState(true);
 	const router = useRouter();
 
 	useEffect(() => {
@@ -176,17 +183,24 @@ export default function Page() {
 				password
 			);
 			const user = userCredential.user;
-			await setDoc(doc(db, 'users', user.uid), {
+			// Prepare user data based on user type
+			let userData = {
 				email: user.email,
 				name: extraFields.name,
-				age: extraFields.age,
-				sex: extraFields.sex,
-				race: extraFields.race,
-				ethnicity: extraFields.ethnicity,
-				weight: extraFields.weight,
-				phone: extraFields.phone,
 				createdAt: new Date(),
-			});
+			};
+			if (isPatient) {
+				userData = {
+					...userData,
+					age: extraFields.age,
+					sex: extraFields.sex,
+					race: extraFields.race,
+					ethnicity: extraFields.ethnicity,
+					weight: extraFields.weight,
+					phone: extraFields.phone,
+				};
+			}
+			await setDoc(doc(db, 'users', user.uid), userData);
 			setUser(user);
 			router.push('/');
 		} catch (error) {
@@ -243,6 +257,7 @@ export default function Page() {
 				<h3 className={`text-white text-3xl font-bold mb-4 text-center ${inter.variable}`}>
 					Blazing Fast.
 				</h3>
+				{/* Pass isPatient to AuthForm */}
 				<AuthForm
 					isLogin={isLogin}
 					onSubmit={handleSubmit}
@@ -252,6 +267,7 @@ export default function Page() {
 					setPassword={setPassword}
 					extraFields={extraFields}
 					setExtraFields={setExtraFields}
+					isPatient={isPatient}
 				/>
 				<button
 					onClick={isLogin ? handleLogin : handleSignUp}
@@ -266,6 +282,14 @@ export default function Page() {
 					>
 						{isLogin ? 'Switch to Sign Up' : 'Switch to Login'}
 					</button>
+					{!isLogin && (
+						<p 
+							className="mt-2 text-sm text-blue-500 cursor-pointer"
+							onClick={() => setIsPatient(!isPatient)}
+						>
+							{isPatient ? 'Sign Up as a Host' : 'Sign Up as a Patient'}
+						</p>
+					)}
 				</div>
 			</div>
 		</section>

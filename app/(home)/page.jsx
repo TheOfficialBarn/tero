@@ -6,15 +6,16 @@ import FileList from "../components/file_list";
 import { AboutTero } from "./components/about_tero";
 import { Profile } from "./components/profile";
 import { SymptomChecker } from "./components/symptom_checker";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Home() {
   // Change for debugging while FireBase Database isn't here
-  const [isLoggedIntoAccount, setIsLoggedIntoAccount] = useState(false);
+  const { user, loading } = useAuth();
   const [isPatient, setIsPatient] = useState(false);
 
   return (
     <>
-      {!isLoggedIntoAccount ? (
+      {!user && !loading ? (
         <>
           {/* If you aren't Logged In, AboutTero is shown */}
           <AboutTero />

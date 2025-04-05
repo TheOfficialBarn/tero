@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 // Import SVGs as components (SVGR must be configured)
 import HomeIcon from "@/public/home.svg";
 import AssignmentIcon from "@/public/assignment.svg";
+import { useAuth } from "@/context/AuthContext";
 
 const patientNavItems = [
   { path: '/', name: 'Home' },
@@ -17,11 +18,11 @@ const doctorNavItems = [
 ];
 
 export function NavBar() {
-  const [isLoggedIntoAccount] = useState(true);
+  const { user, loading } = useAuth();
   const [isPatient] = useState(false);
   const pathname = usePathname(); // This is so that we know which tab to highlight 😼
 
-  if (!isLoggedIntoAccount) return null;
+  if (!loading && !user) return null;
 
   const navItems = isPatient ? patientNavItems : doctorNavItems;
   const activeFill = "#ffffff";   // Active tab fill color 
