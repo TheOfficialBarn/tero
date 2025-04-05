@@ -19,8 +19,36 @@
   }
 }
 
+/* This selector targets all elements except input, select, code, textarea, and contenteditable elements */
+*:not(input):not(select):not(code):not(textarea):not([contenteditable]) {
+  -webkit-touch-callout: none;   /* Prevents iOS touch callout menu when touching and holding links */
+  -webkit-user-select: none;     /* Prevents text selection in WebKit browsers (Chrome, Safari) */
+  -moz-user-select: none;        /* Prevents text selection in Mozilla Firefox */
+  user-select: none;             /* Standard property that prevents text selection in modern browsers */
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  -webkit-tap-highlight-color: transparent; /* this might not work */
+}
+
+.statusBarBlur {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: env(safe-area-inset-top);
+  backdrop-filter: blur(6px);
+  background-color: rgba(255, 255, 255, 0.0); /* Opacity looks best at 0.0*/ 
+  z-index: 100;
+  pointer-events: none; /* ensures it doesn’t interfere with touch events */
+}
+
+.content-container {
+  width: 80%;
+  height: 400px;
+  margin: 20px;
+  background: rgba(255, 255, 255, 0.2);
 }
