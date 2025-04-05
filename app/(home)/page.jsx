@@ -11,7 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 export default function Home() {
   // Change for debugging while FireBase Database isn't here
   const { user, loading } = useAuth();
-  const [isPatient, setIsPatient] = useState(false);
+  const [isPatient] = useState(true);
 
   return (
     <>

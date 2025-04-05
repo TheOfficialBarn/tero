@@ -19,7 +19,7 @@ const doctorNavItems = [
 
 export function NavBar() {
   const { user, loading } = useAuth();
-  const [isPatient] = useState(false);
+  const [isPatient] = useState(true);
   const pathname = usePathname(); // This is so that we know which tab to highlight 😼
 
   if (!loading && !user) return null;
