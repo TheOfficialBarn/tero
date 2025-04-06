@@ -1,4 +1,3 @@
-// For the AI ChatBot Ofc 😍
 'use client'
 // import { Inter } from "next/font/google";
 // import { useChat } from 'ai-sdk/google';
