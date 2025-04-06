@@ -1,9 +1,10 @@
 "use client";
 import { Inter } from "next/font/google";
 import Image from "next/image";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 import app from "@/lib/firebase";
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";  // Add use to the imports
 
 const inter = Inter({
   variable: "--font-inter",
@@ -11,7 +12,9 @@ const inter = Inter({
 });
 
 export default function Page({ params }) {
-  const { hostId } = params;
+  const unwrappedParams = use(params);  // Unwrap the params Promise
+  const { hostId } = unwrappedParams;   // Now safely access hostId
+  
   const [hostName, setHostName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,17 +23,17 @@ export default function Page({ params }) {
     const fetchHostName = async () => {
       try {
         const db = getFirestore(app);
-        // Updated to match your rules: hosts/{hostId}/name/{hostName}
-        const hostNameRef = doc(db, 'hosts', hostId, 'name', 'hostName');
-        const hostNameSnap = await getDoc(hostNameRef);
+        // Updated to fetch directly from the host document
+        const hostDocRef = doc(db, 'hosts', hostId);
+        const hostDocSnap = await getDoc(hostDocRef);
 
-        if (!hostNameSnap.exists()) {
-          throw new Error('Host name document not found');
+        if (!hostDocSnap.exists()) {
+          throw new Error('Host not found');
         }
 
-        // Assuming the field is 'value' (adjust if different)
-        const name = hostNameSnap.data().value;
-        if (!name) throw new Error('Name field missing');
+        // Access the hostName directly from the host document
+        const name = hostDocSnap.data().hostName;
+        if (!name) throw new Error('Host name not available');
         
         setHostName(name);
       } catch (err) {
@@ -43,6 +46,27 @@ export default function Page({ params }) {
 
     fetchHostName();
   }, [hostId]);
+
+  // Append the PATIENT's ID to HOST ARRAY
+  // MAYBE WE NEED TO SEE IF THE USER IS EVEN A PATIENT WE DON'T WANT DOCTOR STUFF
+  const handleCheckIn = async () => {
+    console.log("Handling check in begins")
+    try {
+      const user = getAuth().currentUser;
+      if (!user) throw new Error("No user logged in");
+
+      const db = getFirestore(app);
+      const hostDocRef = doc(db, "hosts", hostId);
+
+      await updateDoc(hostDocRef, {
+        checkedInUsers: arrayUnion(user.uid),
+      });
+      alert("You have been checked in!");
+    } catch (error) {
+      console.error("Check-in error:", error);
+      alert(error.message);
+    }
+  };
 
   if (isLoading) return (
     <section className="h-screen flex items-center justify-center">
@@ -77,8 +101,8 @@ export default function Page({ params }) {
         </div>
         
         <button 
-          className="px-6 py-3 bg-black text-white dark:bg-white dark:text-black rounded-full hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors duration-300 font-medium shadow-md flex items-center justify-center w-3/4"
-          onClick={() => {/* Add check-in logic */}}
+          className="px-6 py-3 bg-black text-white dark:bg-white dark:text-black rounded-full hover:bg-neutral-800 dark:hover:bg-neutral-400 transition-colors duration-300 font-medium shadow-md flex items-center justify-center w-3/4"
+          onClick={handleCheckIn}
         >
           Confirm Check-In
         </button>

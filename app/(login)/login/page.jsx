@@ -183,7 +183,7 @@ export default function Page() {
 				password
 			);
 			const user = userCredential.user;
-			 // Base user data used for both types
+			// Base user data used for both types
 			const userData = {
 				email: user.email,
 				name: extraFields.name,
@@ -200,14 +200,17 @@ export default function Page() {
 					ethnicity: extraFields.ethnicity,
 					weight: extraFields.weight,
 					phone: extraFields.phone,
-					};
+				};
 				await setDoc(doc(db, 'users', user.uid), patientData);
 			} else {
 				// For hosts, use the hosts collection; extra patient fields are omitted.
-				await setDoc(doc(db, 'hosts', user.uid), userData);
-				await setDoc(doc(db, 'hosts', user.uid, 'name', 'hostName'), {
-					value: userData.name || 'Your Host'
-				});
+				const hostData = {
+					...userData,
+					checkedInUsers: [], // Initialize empty array for checked in patients
+					hostName: userData.name || 'Your Host', // Store host name directly in the host document
+				};
+				
+				await setDoc(doc(db, 'hosts', user.uid), hostData);
 			}
 			setUser(user);
 			router.push('/');
