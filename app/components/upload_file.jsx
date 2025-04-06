@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { ethers } from "ethers";
 import * as eccryptoJS from "eccrypto-js";
 
@@ -7,157 +7,44 @@ export default function UploadFile() {
   const [file, setFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
-  const [userAddress, setUserAddress] = useState(null);
+  const [walletAddress, setWalletAddress] = useState(null);
   const [userSignature, setUserSignature] = useState(null);
   const fileInputRef = useRef(null);
 
-  // Request wallet access and signature
-  // CALL THIS FUNCTION FOR CONNECT TO METAMASK BUTTON
-  const initializeWallet = async () => {
-    if (window.ethereum) {
-      const provider = new ethers.providers.Web3Provider(window.ethereum); //gets the metamask or other wallet managers
-      await provider.send("eth_requestAccounts", []); //this requests the address
-      const signer = provider.getSigner();
-      const address = await signer.getAddress(); //this gets the user address
-      const signature = await signer.signMessage("Access file encryption key");
-
-      setUserAddress(address);
-      setUserSignature(signature);
-    } else {
-      console.warn("Ethereum wallet not detected");
-    }
-  };
-
-  // Handle file input button click
-  const handleButtonClick = () => {
-    fileInputRef.current.click();
-  };
-
-  // Encrypt the encryption key using the user's public key
-  const getEncryptedKey = async (plaintextKey) => {
-    if (!userAddress || !userSignature) {
-      throw new Error("User not signed in. Please sign in first.");
-    }
-    const hashedMsg = ethers.utils.hashMessage("Access file encryption key");
-    const recoveredPubKeyHex = ethers.utils.recoverPublicKey(
-      hashedMsg,
-      userSignature,
-    );
-    const publicKeyBuffer = Buffer.from(recoveredPubKeyHex.slice(2), "hex");
-
-    if (publicKeyBuffer.length !== 65 || publicKeyBuffer[0] !== 0x04) {
-      throw new Error(
-        "Recovered public key is not in correct uncompressed format",
-      );
-    }
-
-    const encryptedBuffer = await eccryptoJS.encrypt(
-      publicKeyBuffer,
-      Buffer.from(plaintextKey),
-    );
-
-    const encryptedKey = {
-      iv: encryptedBuffer.iv.toString("base64"),
-      ephemPublicKey: encryptedBuffer.ephemPublicKey.toString("base64"),
-      ciphertext: encryptedBuffer.ciphertext.toString("base64"),
-      mac: encryptedBuffer.mac.toString("base64"),
-    };
-
-    return {
-      encryptedKey: JSON.stringify(encryptedKey),
-      publicKey: recoveredPubKeyHex,
-      address: userAddress,
-    };
-  };
-
-  // Store file metadata on the blockchain
-  const storeOnBlockchain = async (ipfsHash, metadata) => {
+  // Connect wallet and get signature
+  const connectWallet = async () => {
     if (!window.ethereum) {
-      console.warn("Ethereum wallet not detected");
-      return;
+      setUploadError("Ethereum wallet not detected");
+      return false;
     }
-
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
-      const contract = new ethers.Contract(
-        process.env.NEXT_PUBLIC_CONTRACT_ADDRESS,
-        [
-          "function storeFile(string memory ipfsHash, string memory metadata) public",
-        ],
-        signer,
-      );
-
-      const tx = await contract.storeFile(ipfsHash, JSON.stringify(metadata));
-      await tx.wait();
-      console.log("Transaction confirmed:", tx.hash);
-    } catch (error) {
-      console.error("Blockchain storage failed:", error);
+      const address = await signer.getAddress();
+      const signature = await signer.signMessage("Access file encryption key");
+      
+      setWalletAddress(address);
+      setUserSignature(signature);
+      return { address, signature };
+    } catch (err) {
+      setUploadError("Wallet connection failed: " + err.message);
+      return false;
     }
   };
 
-  // Encrypt the file using AES-GCM
-  const encryptFile = async (file, password) => {
-    try {
-      const encoder = new TextEncoder();
-      const keyMaterial = await crypto.subtle.importKey(
-        "raw",
-        encoder.encode(password),
-        "PBKDF2",
-        false,
-        ["deriveKey"],
-      );
-
-      const salt = crypto.getRandomValues(new Uint8Array(16));
-      const key = await crypto.subtle.deriveKey(
-        {
-          name: "PBKDF2",
-          salt,
-          iterations: 100000,
-          hash: "SHA-256",
-        },
-        keyMaterial,
-        { name: "AES-GCM", length: 256 },
-        false,
-        ["encrypt"],
-      );
-
-      const iv = crypto.getRandomValues(new Uint8Array(12));
-      const fileBuffer = await file.arrayBuffer();
-      const encrypted = await crypto.subtle.encrypt(
-        { name: "AES-GCM", iv },
-        key,
-        fileBuffer,
-      );
-
-      const encryptedBlob = new Blob([salt, iv, new Uint8Array(encrypted)], {
-        type: "application/octet-stream",
-      });
-
-      return encryptedBlob;
-    } catch (error) {
-      console.error("Encryption failed:", error);
-      throw error;
-    }
-  };
-
-  // Handle file input change event
+  // Handle file selection
   const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
+    if (e.target.files?.[0]) {
       setFile(e.target.files[0]);
       setUploadError(null);
     }
   };
 
-  // Handle file upload logic
+  // Handle file upload
   const handleUpload = async () => {
     if (!file) {
       setUploadError("Please select a file first");
-      return;
-    }
-
-    if (!userAddress || !userSignature) {
-      setUploadError("Please connect your wallet first");
       return;
     }
 
@@ -165,17 +52,26 @@ export default function UploadFile() {
     setUploadError(null);
 
     try {
-      const password = userSignature; // Use the signature as the AES password
-      const encryptedFile = await encryptFile(file, password);
-      const { encryptedKey, publicKey, address } =
-        await getEncryptedKey(password);
+      // 1. Ensure wallet is connected
+      const wallet = walletAddress && userSignature 
+        ? { address: walletAddress, signature: userSignature }
+        : await connectWallet();
+      
+      if (!wallet) return; // Connection failed
+
+      // 2. Encrypt the file
+      const encryptedFile = await encryptFile(file, wallet.signature);
+
+      // 3. Prepare metadata
+      const publicKey = await getPublicKey(wallet.signature);
+      const encryptedKey = await getEncryptedKey(wallet.signature, publicKey);
 
       const metadata = {
         name: `${file.name}.enc`,
         keyvalues: {
           encryptedKey,
           publicKey,
-          keyOwner: address,
+          keyOwner: wallet.address,
           encryptionScheme: "AES-GCM-256",
           originalName: file.name,
           mimeType: file.type,
@@ -183,44 +79,114 @@ export default function UploadFile() {
         },
       };
 
-      const options = {
-        cidVersion: 1,
-      };
-
+      // 4. Upload to IPFS
       const formData = new FormData();
       formData.append("file", encryptedFile, `${file.name}.enc`);
       formData.append("pinataMetadata", JSON.stringify(metadata));
-      formData.append("pinataOptions", JSON.stringify(options));
+      formData.append("pinataOptions", JSON.stringify({ cidVersion: 1 }));
 
-      const response = await fetch("/api/uploadToPinata", {
+      const res = await fetch("/api/uploadToPinata", {
         method: "POST",
         body: formData,
       });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Upload failed");
+      }
 
-      const data = await response.json();
-      console.log(data);
+      const data = await res.json();
 
-      if (!response.ok) throw new Error(data.error || "Upload failed");
+      // 5. Store reference on blockchain
+      await storeOnBlockchain(data.IpfsHash, metadata);
 
-      const ipfsHash = data.IpfsHash;
-      await storeOnBlockchain(ipfsHash, metadata);
-
-      alert(`File uploaded successfully!\nIPFS CID: ${ipfsHash}`);
+      // 6. Reset form
+      alert(`File uploaded successfully!\nIPFS CID: ${data.IpfsHash}`);
       setFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
-    } catch (error) {
-      console.error("Upload error:", error);
-      setUploadError(error.message || "Failed to upload file");
+      
+    } catch (err) {
+      setUploadError(err.message || "File upload failed");
+      console.error("Upload error:", err);
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  // Helper functions
+  const getPublicKey = async (signature) => {
+    const hashedMsg = ethers.utils.hashMessage("Access file encryption key");
+    return ethers.utils.recoverPublicKey(hashedMsg, signature);
+  };
+
+  const getEncryptedKey = async (signature, publicKey) => {
+    const publicKeyBuffer = Buffer.from(publicKey.slice(2), "hex");
+    const encryptedBuffer = await eccryptoJS.encrypt(
+      publicKeyBuffer,
+      Buffer.from(signature),
+    );
+    return JSON.stringify({
+      iv: encryptedBuffer.iv.toString("base64"),
+      ephemPublicKey: encryptedBuffer.ephemPublicKey.toString("base64"),
+      ciphertext: encryptedBuffer.ciphertext.toString("base64"),
+      mac: encryptedBuffer.mac.toString("base64"),
+    });
+  };
+
+  const encryptFile = async (file, password) => {
+    const encoder = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(password),
+      "PBKDF2",
+      false,
+      ["deriveKey"],
+    );
+
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const key = await crypto.subtle.deriveKey(
+      { name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" },
+      keyMaterial,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["encrypt"],
+    );
+
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const encrypted = await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv },
+      key,
+      await file.arrayBuffer(),
+    );
+
+    return new Blob([salt, iv, new Uint8Array(encrypted)], {
+      type: "application/octet-stream",
+    });
+  };
+
+  const storeOnBlockchain = async (ipfsHash, metadata) => {
+    if (!window.ethereum) return;
+    
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(
+        process.env.NEXT_PUBLIC_CONTRACT_ADDRESS,
+        ["function storeFile(string memory ipfsHash, string memory metadata) public"],
+        signer,
+      );
+      const tx = await contract.storeFile(ipfsHash, JSON.stringify(metadata));
+      await tx.wait();
+    } catch (error) {
+      console.error("Blockchain storage failed:", error);
+      throw error;
     }
   };
 
   return (
     <div className="flex flex-col items-center justify-center gap-4 p-6 max-w-md mx-auto">
       <h1 className="text-2xl font-bold mb-4">Upload to IPFS</h1>
-
-      {/* File selection section */}
+      
       <input
         type="file"
         ref={fileInputRef}
@@ -228,15 +194,15 @@ export default function UploadFile() {
         className="hidden"
         disabled={isUploading}
       />
-
+      
       <button
-        onClick={handleButtonClick}
+        onClick={() => fileInputRef.current.click()}
         disabled={isUploading}
         className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
       >
         {file ? `Selected: ${file.name}` : "Choose File"}
       </button>
-
+      
       {file && (
         <button
           onClick={handleUpload}
@@ -246,7 +212,7 @@ export default function UploadFile() {
           {isUploading ? "Uploading..." : "Upload to IPFS"}
         </button>
       )}
-
+      
       {uploadError && (
         <p className="text-red-500 text-sm mt-2">{uploadError}</p>
       )}
