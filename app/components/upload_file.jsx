@@ -11,47 +11,50 @@ export default function UploadFile() {
   const [userSignature, setUserSignature] = useState(null);
   const fileInputRef = useRef(null);
 
-  // Request wallet access and signature once when the component mounts
-  useEffect(() => {
-    const initializeWallet = async () => {
-      if (window.ethereum) {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        const signer = provider.getSigner();
-        const address = await signer.getAddress();
-        const signature = await signer.signMessage("Access file encryption key");
+  // Request wallet access and signature
+  // CALL THIS FUNCTION FOR CONNECT TO METAMASK BUTTON
+  const initializeWallet = async () => {
+    if (window.ethereum) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum); //gets the metamask or other wallet managers
+      await provider.send("eth_requestAccounts", []); //this requests the address
+      const signer = provider.getSigner();
+      const address = await signer.getAddress(); //this gets the user address
+      const signature = await signer.signMessage("Access file encryption key");
 
-        setUserAddress(address);
-        setUserSignature(signature);
-      } else {
-        console.warn("Ethereum wallet not detected");
-      }
-    };
-
-    initializeWallet();
-  }, []);
-
-  const handleButtonClick = () => {
-    fileInputRef.current.click(); 
+      setUserAddress(address);
+      setUserSignature(signature);
+    } else {
+      console.warn("Ethereum wallet not detected");
+    }
   };
 
+  // Handle file input button click
+  const handleButtonClick = () => {
+    fileInputRef.current.click();
+  };
+
+  // Encrypt the encryption key using the user's public key
   const getEncryptedKey = async (plaintextKey) => {
     if (!userAddress || !userSignature) {
       throw new Error("User not signed in. Please sign in first.");
     }
-
     const hashedMsg = ethers.utils.hashMessage("Access file encryption key");
     const recoveredPubKeyHex = ethers.utils.recoverPublicKey(
       hashedMsg,
       userSignature,
-    ); // Uncompressed
+    );
     const publicKeyBuffer = Buffer.from(recoveredPubKeyHex.slice(2), "hex");
 
     if (publicKeyBuffer.length !== 65 || publicKeyBuffer[0] !== 0x04) {
-      throw new Error("Recovered public key is not in correct uncompressed format");
+      throw new Error(
+        "Recovered public key is not in correct uncompressed format",
+      );
     }
 
-    const encryptedBuffer = await eccryptoJS.encrypt(publicKeyBuffer, Buffer.from(plaintextKey));
+    const encryptedBuffer = await eccryptoJS.encrypt(
+      publicKeyBuffer,
+      Buffer.from(plaintextKey),
+    );
 
     const encryptedKey = {
       iv: encryptedBuffer.iv.toString("base64"),
@@ -67,6 +70,7 @@ export default function UploadFile() {
     };
   };
 
+  // Store file metadata on the blockchain
   const storeOnBlockchain = async (ipfsHash, metadata) => {
     if (!window.ethereum) {
       console.warn("Ethereum wallet not detected");
@@ -76,7 +80,6 @@ export default function UploadFile() {
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
-
       const contract = new ethers.Contract(
         process.env.NEXT_PUBLIC_CONTRACT_ADDRESS,
         [
@@ -93,6 +96,7 @@ export default function UploadFile() {
     }
   };
 
+  // Encrypt the file using AES-GCM
   const encryptFile = async (file, password) => {
     try {
       const encoder = new TextEncoder();
@@ -137,6 +141,7 @@ export default function UploadFile() {
     }
   };
 
+  // Handle file input change event
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
@@ -144,6 +149,7 @@ export default function UploadFile() {
     }
   };
 
+  // Handle file upload logic
   const handleUpload = async () => {
     if (!file) {
       setUploadError("Please select a file first");
@@ -161,7 +167,8 @@ export default function UploadFile() {
     try {
       const password = userSignature; // Use the signature as the AES password
       const encryptedFile = await encryptFile(file, password);
-      const { encryptedKey, publicKey, address } = await getEncryptedKey(password);
+      const { encryptedKey, publicKey, address } =
+        await getEncryptedKey(password);
 
       const metadata = {
         name: `${file.name}.enc`,
@@ -209,10 +216,11 @@ export default function UploadFile() {
     }
   };
 
-  return ( // PLS FIX BARN ==========================================================
+  return (
     <div className="flex flex-col items-center justify-center gap-4 p-6 max-w-md mx-auto">
       <h1 className="text-2xl font-bold mb-4">Upload to IPFS</h1>
 
+      {/* File selection section */}
       <input
         type="file"
         ref={fileInputRef}
@@ -245,4 +253,3 @@ export default function UploadFile() {
     </div>
   );
 }
-
