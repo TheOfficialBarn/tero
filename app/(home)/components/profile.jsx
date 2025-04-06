@@ -113,7 +113,7 @@ export function Profile() {
                     name="name" 
                     value={formData.name || ''} 
                     onChange={handleChange} 
-                    className="bg-white/30 rounded-lg px-3 py-2 text-neutral-800 dark:text-white"
+                    className="bg-neutral-200 dark:bg-white/30 rounded-lg px-3 py-2 text-neutral-800 dark:text-white"
                   />
                 </div>
                 
@@ -124,7 +124,7 @@ export function Profile() {
                     name="age" 
                     value={formData.age || ''} 
                     onChange={handleChange} 
-                    className="bg-white/30 rounded-lg px-3 py-2 text-neutral-800 dark:text-white"
+                    className="bg-neutral-200 dark:bg-white/30 rounded-lg px-3 py-2 text-neutral-800 dark:text-white"
                   />
                 </div>
                 
@@ -134,7 +134,7 @@ export function Profile() {
                     name="sex" 
                     value={formData.sex || ''} 
                     onChange={handleChange} 
-                    className="bg-white/30 rounded-lg px-3 py-2 text-neutral-800 dark:text-white"
+                    className="bg-neutral-200 dark:bg-white/30 rounded-lg px-3 py-2 text-neutral-800 dark:text-white"
                   >
                     <option value="">Select gender</option>
                     <option value="male">Male</option>
@@ -151,7 +151,7 @@ export function Profile() {
                     name="weight" 
                     value={formData.weight || ''} 
                     onChange={handleChange} 
-                    className="bg-white/30 rounded-lg px-3 py-2 text-neutral-800 dark:text-white"
+                    className="bg-neutral-200 dark:bg-white/30 rounded-lg px-3 py-2 text-neutral-800 dark:text-white"
                   />
                 </div>
                 
@@ -162,7 +162,7 @@ export function Profile() {
                     name="phone" 
                     value={formData.phone || ''} 
                     onChange={handleChange} 
-                    className="bg-white/30 rounded-lg px-3 py-2 text-neutral-800 dark:text-white"
+                    className="bg-neutral-200 dark:bg-white/30 rounded-lg px-3 py-2 text-neutral-800 dark:text-white"
                   />
                 </div>
                 
@@ -172,7 +172,7 @@ export function Profile() {
                     name="race" 
                     value={formData.race || ''} 
                     onChange={handleChange} 
-                    className="bg-white/30 rounded-lg px-3 py-2 text-neutral-800 dark:text-white"
+                    className="bg-neutral-200 dark:bg-white/30 rounded-lg px-3 py-2 text-neutral-800 dark:text-white"
                   >
                     <option value="">Select race</option>
                     <option value="white">White</option>
@@ -190,7 +190,7 @@ export function Profile() {
                     name="ethnicity" 
                     value={formData.ethnicity || ''} 
                     onChange={handleChange} 
-                    className="bg-white/30 rounded-lg px-3 py-2 text-neutral-800 dark:text-white"
+                    className="bg-neutral-200 dark:bg-white/30 rounded-lg px-3 py-2 text-neutral-800 dark:text-white"
                   />
                 </div>
               </div>
