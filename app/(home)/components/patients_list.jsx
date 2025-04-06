@@ -81,10 +81,10 @@ export function PatientsList() {
   }
 
   return (
-    <div className="bg-white/30 dark:bg-white/0 dark:bg-gradient-to-b dark:from-neutral-800/30 dark:to-neutral-600/30 rounded-3xl shadow-lg backdrop-blur-md flex flex-col items-center justify-center gap-8 p-10 text-white mx-2">
-		<h3 className={`text-3xl text-white font-bold mb-2 ${inter.variable}`}>
-          Checked-In Patients
-        </h3>
+    <section className="bg-white/30 dark:bg-white/0 dark:bg-gradient-to-b dark:from-neutral-800/30 dark:to-neutral-600/30 rounded-3xl shadow-lg backdrop-blur-md flex flex-col items-center justify-center gap-8 p-10 text-white">
+      <h3 className={`text-3xl text-white font-bold mb-2 ${inter.variable}`}>
+            Checked-In Patients
+      </h3>
       
       {checkedInUsers.length === 0 ? (
         <div className="p-8 text-center bg-white/30 rounded-xl text-white">
@@ -185,6 +185,6 @@ export function PatientsList() {
           ))}
         </ul>
       )}
-    </div>
+    </section>
   );
 }
