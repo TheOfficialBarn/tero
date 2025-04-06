@@ -106,7 +106,7 @@ export default function FileList() {
           className={`text-foreground text-2xl font-bold ${geist.variable} font-[family-name:var(--font-geist-sans)]`}
         >
           {walletAddress
-            ? "✨ Your Medical Records ✨"
+            ? " Your Medical Records "
             : "Connect Wallet to View Files"}
         </h3>
         <div className="flex gap-2">
