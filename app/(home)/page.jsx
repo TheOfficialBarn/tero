@@ -53,7 +53,7 @@ export default function Home() {
             <Profile />
           </section>
           <section className="h-screen flex items-center justify-center snap-start">
-            <symptom_checker />
+            <SymptomChecker />
           </section>
         </>
       )}

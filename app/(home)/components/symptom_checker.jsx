@@ -1,86 +1,56 @@
-'use client'
-// import { Inter } from "next/font/google";
-// import { useChat } from 'ai-sdk/google';
-// const inter = Inter({
-//   variable: "--font-inter",
-//   subsets: ["latin"],
-// });
+'use client';
 
-// export function SymptomChecker() {
-// 	const { messages, input, handleInputChange, handleSubmit } = useChat({});
-	
-// 	return (
-// 		<>
-// 			<div className="bg-[rgba(130,130,130,0.5)] rounded-3xl p-6 m-2 flex flex-col items-center justify-center w-full h-5/8">
-// 				<h3 className={`text-white text-3xl font-bold mb-4 ${inter.variable}`}>✨ Symptom Chat ✨</h3>
-// 				<div className="w-full max-h-96 overflow-y-auto">
-// 					{messages.map((message, index) => (
-// 						<div key={index} className="mb-4">
-// 							<span className="font-bold">
-// 								{message.role === "user" ? "User: " : "AI: "}
-// 							</span>
-// 							{message.content}
-// 						</div>
-// 					))}
-// 				</div>
-// 				<form onSubmit={handleSubmit} className="w-full flex items-center mt-4">
-// 					<input
-// 						type="text"
-// 						value={input}
-// 						onChange={handleInputChange}
-// 						placeholder="Type your symptoms..."
-// 						className="flex-1 px-4 py-2 border rounded-md"
-// 					/>
-// 					<button
-// 						type="submit"
-// 						className="ml-2 bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 transition-colors"
-// 					>
-// 						Send
-// 					</button>
-// 				</form>
-// 			</div>
-// 		</>
-// 	);
-// }
-
-// GeminiChat.jsx
 import { useState } from 'react';
 
-export default function GeminiChat() {
-  const [input, setInput] = useState('');
-  const [response, setResponse] = useState('');
-  const [loading, setLoading] = useState(false);
+export default function SymptomChecker() {
+  const [input, setInput] = useState(''); // User input
+  const [response, setResponse] = useState(''); // API response
+  const [loading, setLoading] = useState(false); // Loading state
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setResponse('');
+    e.preventDefault(); // Prevent form submission
+    setLoading(true); // Set loading state
+    setResponse(''); // Clear previous response
 
-    const res = await fetch('/api/gemini', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: input }),
-    });
+    try {
+      // Send user input to the /api/gemini endpoint
+      const res = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input }), // Send user input in the request body
+      });
 
-    const data = await res.json();
-    setResponse(data.output || 'No response');
-    setLoading(false);
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error('Error from API:', errorData.error);
+        setResponse('Failed to fetch response from the API.');
+      } else {
+        const data = await res.json();
+        setResponse(data.contents?.[0]?.parts?.[0]?.text || 'No response'); // Extract response text
+      }
+    } catch (error) {
+      console.error('Error during API call:', error);
+      setResponse('An error occurred while fetching the response.');
+    } finally {
+      setLoading(false); // Reset loading state
+    }
   };
 
   return (
     <div className="p-4 max-w-xl mx-auto">
+      <h3 className="text-2xl font-bold mb-4 text-center">✨ Symptom Checker ✨</h3>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <textarea
           rows={4}
           className="border rounded p-2"
-          placeholder="Ask something..."
+          placeholder="Describe your symptoms..."
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(e) => setInput(e.target.value)} // Update input state
         />
         <button
           type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-          disabled={loading}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+          disabled={loading} // Disable button while loading
         >
           {loading ? 'Thinking...' : 'Send'}
         </button>
