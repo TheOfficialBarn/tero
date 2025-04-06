@@ -135,7 +135,7 @@ export function SymptomChecker() {
           <textarea 
             className="w-full bg-white/30 dark:bg-white/0 text-foreground rounded-xl px-4 py-3 mr-2 resize-none transition-all focus:outline-0 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={prompt}
-            placeholder="Type your message here..."
+            placeholder="Type your message..."
             onChange={(e)=>setPrompt(e.target.value)}
             rows={1}
             onInput={(e) => {
