@@ -38,7 +38,7 @@ export default function Page() {
   }, []);
 
 const copyToClipboard = () => {
-  const baseUrl = 'https://tero.vercel.app/nfc-arrival/'; // Custom base URL
+  const baseUrl = 'https://tero-7.vercel.app/nfc-arrival/'; // Custom base URL
   const urlWithHostID = hostID ? `${baseUrl}${hostID}` : baseUrl; // Append hostID if available
   navigator.clipboard.writeText(urlWithHostID) // Copy the URL to the clipboard
 	.then(() => {
