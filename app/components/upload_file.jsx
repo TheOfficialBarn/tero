@@ -23,35 +23,31 @@ export default function UploadFile() {
     }
   }, [walletAddress]);
 
+  // components/upload_file.jsx
   const connectWalletHandler = async () => {
     if (connectingWallet) return;
     setConnectingWallet(true);
     setUploadError(null);
 
     try {
-      const connection = await connectWallet();
-      if (!connection) {
-        if (isMobile() && isPWA()) {
-          setUploadError(
-            "Please open in browser or MetaMask app for full functionality"
-          );
-        }
+      // First check HTTPS
+      if (window.location.protocol !== "https:") {
+        window.location.href = `https://${window.location.host}${window.location.pathname}`;
         return;
       }
 
-      const { provider, signer, address } = connection;
-      const signature = await signer.signMessage("Access file encryption key");
-
-      setWalletAddress(address);
-      setUserSignature(signature);
-      return { address, signature, provider, signer };
+      const connection = await connectWallet();
+      // Rest of logic...
     } catch (err) {
-      setUploadError("Wallet connection failed: " + err.message);
+      setUploadError(
+        err.message.includes("user rejected")
+          ? "Connection cancelled"
+          : "Wallet connection failed: " + err.message,
+      );
     } finally {
       setConnectingWallet(false);
     }
   };
-
   // Handle file selection
   const handleFileChange = (e) => {
     if (e.target.files?.[0]) {
@@ -63,7 +59,9 @@ export default function UploadFile() {
   // Fetch uploaded files from Pinata (or any other source)
   const fetchUploadedFiles = async () => {
     try {
-      const res = await fetch(`/api/fetchUploadedFiles?wallet=${walletAddress}`);
+      const res = await fetch(
+        `/api/fetchUploadedFiles?wallet=${walletAddress}`,
+      );
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to fetch files");
       setFiles(data.files);
@@ -165,7 +163,7 @@ export default function UploadFile() {
     const publicKeyBuffer = Buffer.from(publicKey.slice(2), "hex");
     const encryptedBuffer = await eccryptoJS.encrypt(
       publicKeyBuffer,
-      Buffer.from(signature)
+      Buffer.from(signature),
     );
     return JSON.stringify({
       iv: encryptedBuffer.iv.toString("base64"),
@@ -182,7 +180,7 @@ export default function UploadFile() {
       encoder.encode(password),
       "PBKDF2",
       false,
-      ["deriveKey"]
+      ["deriveKey"],
     );
 
     const salt = crypto.getRandomValues(new Uint8Array(16));
@@ -191,14 +189,14 @@ export default function UploadFile() {
       keyMaterial,
       { name: "AES-GCM", length: 256 },
       false,
-      ["encrypt"]
+      ["encrypt"],
     );
 
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const encrypted = await crypto.subtle.encrypt(
       { name: "AES-GCM", iv },
       key,
-      await file.arrayBuffer()
+      await file.arrayBuffer(),
     );
 
     return new Blob([salt, iv, new Uint8Array(encrypted)], {
@@ -217,7 +215,7 @@ export default function UploadFile() {
         [
           "function storeFile(string memory ipfsHash, string memory metadata) public",
         ],
-        signer
+        signer,
       );
       const tx = await contract.storeFile(ipfsHash, JSON.stringify(metadata));
       await tx.wait();
@@ -292,4 +290,3 @@ export default function UploadFile() {
     </div>
   );
 }
-
