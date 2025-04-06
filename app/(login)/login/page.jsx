@@ -205,6 +205,9 @@ export default function Page() {
 			} else {
 				// For hosts, use the hosts collection; extra patient fields are omitted.
 				await setDoc(doc(db, 'hosts', user.uid), userData);
+				await setDoc(doc(db, 'hosts', user.uid, 'name', 'hostName'), {
+					value: userData.name || 'Your Host'
+				});
 			}
 			setUser(user);
 			router.push('/');
