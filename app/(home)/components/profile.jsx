@@ -38,7 +38,7 @@
 	}, []);
 
 	return (
-		<section className="bg-[rgba(130,130,130,0.5)] rounded-3xl flex flex-col items-center justify-center w-full ">
+		<section className="bg-[rgba(130,130,130,0.5)] rounded-3xl flex flex-col items-center justify-center w-full sm:w-1/2 ">
 			<h3 className={`text-white text-3xl font-bold mb-4 ${inter.variable}`}>✨ Profile ✨</h3>
 			{user && profileData ? (
 				<div className="text-white text-lg">
