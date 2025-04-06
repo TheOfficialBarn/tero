@@ -44,8 +44,10 @@ export default function FileList() {
   };
 
   useEffect(() => {
-    refreshFiles();
-  }, []);
+    if (walletAddress) {
+      refreshFiles();
+    }
+  }, [walletAddress]);
 
   return (
     <div className="max-w-2xl mx-auto p-4">

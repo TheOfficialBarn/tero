@@ -9,27 +9,40 @@ export default function UploadFile() {
   const [uploadError, setUploadError] = useState(null);
   const [walletAddress, setWalletAddress] = useState(null);
   const [userSignature, setUserSignature] = useState(null);
+  const [connectingWallet, setConnectingWallet] = useState(false); // ✅ Add this line
+
   const fileInputRef = useRef(null);
 
-  // Connect wallet and get signature
   const connectWallet = async () => {
     if (!window.ethereum) {
       setUploadError("Ethereum wallet not detected");
       return false;
     }
+
+    if (connectingWallet) return; // Prevent duplicate calls
+    setConnectingWallet(true);
+
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
       const address = await signer.getAddress();
       const signature = await signer.signMessage("Access file encryption key");
-      
+
       setWalletAddress(address);
       setUserSignature(signature);
       return { address, signature };
     } catch (err) {
-      setUploadError("Wallet connection failed: " + err.message);
+      if (err.code === -32002) {
+        setUploadError(
+          "MetaMask is already processing a connection request. Please check your wallet.",
+        );
+      } else {
+        setUploadError("Wallet connection failed: " + err.message);
+      }
       return false;
+    } finally {
+      setConnectingWallet(false);
     }
   };
 
@@ -53,10 +66,11 @@ export default function UploadFile() {
 
     try {
       // 1. Ensure wallet is connected
-      const wallet = walletAddress && userSignature 
-        ? { address: walletAddress, signature: userSignature }
-        : await connectWallet();
-      
+      const wallet =
+        walletAddress && userSignature
+          ? { address: walletAddress, signature: userSignature }
+          : await connectWallet();
+
       if (!wallet) return; // Connection failed
 
       // 2. Encrypt the file
@@ -89,7 +103,7 @@ export default function UploadFile() {
         method: "POST",
         body: formData,
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.error || "Upload failed");
@@ -104,7 +118,6 @@ export default function UploadFile() {
       alert(`File uploaded successfully!\nIPFS CID: ${data.IpfsHash}`);
       setFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
-      
     } catch (err) {
       setUploadError(err.message || "File upload failed");
       console.error("Upload error:", err);
@@ -166,13 +179,15 @@ export default function UploadFile() {
 
   const storeOnBlockchain = async (ipfsHash, metadata) => {
     if (!window.ethereum) return;
-    
+
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(
         process.env.NEXT_PUBLIC_CONTRACT_ADDRESS,
-        ["function storeFile(string memory ipfsHash, string memory metadata) public"],
+        [
+          "function storeFile(string memory ipfsHash, string memory metadata) public",
+        ],
         signer,
       );
       const tx = await contract.storeFile(ipfsHash, JSON.stringify(metadata));
@@ -182,11 +197,22 @@ export default function UploadFile() {
       throw error;
     }
   };
-
   return (
     <div className="flex flex-col items-center justify-center gap-4 p-6 max-w-md mx-auto">
       <h1 className="text-2xl font-bold mb-4">Upload to IPFS</h1>
-      
+
+      {/* Login Button */}
+      <button
+        onClick={connectWallet}
+        disabled={isUploading}
+        className="w-full px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+      >
+        {walletAddress
+          ? `Connected: ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
+          : "Login with MetaMask"}
+      </button>
+
+      {/* File Input */}
       <input
         type="file"
         ref={fileInputRef}
@@ -194,7 +220,7 @@ export default function UploadFile() {
         className="hidden"
         disabled={isUploading}
       />
-      
+
       <button
         onClick={() => fileInputRef.current.click()}
         disabled={isUploading}
@@ -202,7 +228,7 @@ export default function UploadFile() {
       >
         {file ? `Selected: ${file.name}` : "Choose File"}
       </button>
-      
+
       {file && (
         <button
           onClick={handleUpload}
@@ -212,7 +238,7 @@ export default function UploadFile() {
           {isUploading ? "Uploading..." : "Upload to IPFS"}
         </button>
       )}
-      
+
       {uploadError && (
         <p className="text-red-500 text-sm mt-2">{uploadError}</p>
       )}
