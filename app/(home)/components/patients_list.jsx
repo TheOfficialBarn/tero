@@ -4,6 +4,13 @@ import { useState, useEffect } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/context/AuthContext';
+import { Inter } from 'next/font/google';
+
+const inter = Inter({
+	variable: "--font-inter",
+	subsets: ["latin"],
+  });
+
 
 export function PatientsList() {
   const [checkedInUsers, setCheckedInUsers] = useState([]);
@@ -74,13 +81,13 @@ export function PatientsList() {
   }
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">
-        Checked-In Patients
-      </h2>
+    <div className="bg-white/30 dark:bg-white/0 dark:bg-gradient-to-b dark:from-neutral-800/30 dark:to-neutral-600/30 rounded-3xl shadow-lg backdrop-blur-md flex flex-col items-center justify-center gap-8 p-10 text-white mx-2">
+		<h3 className={`text-3xl text-white font-bold mb-2 ${inter.variable}`}>
+          Checked-In Patients
+        </h3>
       
       {checkedInUsers.length === 0 ? (
-        <div className="p-8 text-center bg-gray-50 rounded-xl border border-gray-100 text-gray-500">
+        <div className="p-8 text-center bg-white/30 rounded-xl text-white">
           No patients have checked in yet.
         </div>
       ) : (

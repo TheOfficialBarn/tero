@@ -86,7 +86,7 @@ export default function Page({ params }) {
     <section className="h-screen flex items-center justify-center snap-start p-4">
       <div className="bg-white/30 dark:bg-white/0 dark:bg-gradient-to-b dark:from-neutral-800/30 dark:to-neutral-600/30 rounded-3xl shadow-lg backdrop-blur-md flex flex-col items-center justify-center gap-8 p-10">
         <h3 className={`text-3xl text-white font-bold mb-2 ${inter.variable}`}>
-          ✨ Check-In with {hostName || 'Your Host'}
+          ✨ Check-In with {hostName || 'Your Host'} ✨
         </h3>
         
         <div className="p-6">
