@@ -38,14 +38,42 @@ export default function Page() {
     const baseUrl = 'https://tero-seven.vercel.app/nfc-arrival/';
     const urlWithHostID = hostID ? `${baseUrl}${hostID}` : baseUrl;
     
-    navigator.clipboard.writeText(urlWithHostID)
-      .then(() => {
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 2000);
-      })
-      .catch((err) => {
-        console.error('Failed to copy URL:', err);
-      });
+    // Try modern clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(urlWithHostID)
+        .then(() => {
+          setIsCopied(true);
+          setTimeout(() => setIsCopied(false), 2000);
+        })
+        .catch(err => {
+          console.error('Clipboard API failed:', err);
+          fallbackCopyToClipboard(urlWithHostID);
+        });
+    } else {
+      // Use fallback for iOS
+      fallbackCopyToClipboard(urlWithHostID);
+    }
+  };
+
+  const fallbackCopyToClipboard = (text) => {
+    // Create temporary input element
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';  // Avoid scrolling to bottom
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+      // Execute copy command
+      const successful = document.execCommand('copy');
+      setIsCopied(successful);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('Fallback clipboard method failed:', err);
+    }
+    
+    document.body.removeChild(textArea);
   };
 
   if (loading) {
@@ -84,7 +112,7 @@ export default function Page() {
       
       {hostID && (
         <div className="bg-gray-50 rounded-lg p-4 w-full max-w-md border border-gray-200">
-          <p className="text-gray-500 text-sm font-mono break-all">
+          <p className="text-gray-500 text-sm font-mono break-all select-text cursor-text">
             https://tero-seven.vercel.app/nfc-arrival/{hostID}
           </p>
         </div>
