@@ -2,6 +2,13 @@
 
 import { useState, useRef, useEffect } from "react";
 
+import { Inter } from "next/font/google";
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+});
+
+
 export function SymptomChecker() {
   
   const [prompt, setPrompt] = useState('');
@@ -11,11 +18,11 @@ export function SymptomChecker() {
   const [chatHistory, setChatHistory] = useState([
     {
       "role": "user",
-      "parts": [{ "text": "Hi, I am Happy to talk to you. " }]
+      "parts": [{ "text": "Hello! " }]
     },
     {
       "role": "model",
-      "parts": [{ "text": "Great to meet you. What Would you like to know?" }]
+      "parts": [{ "text": "Great to meet you. I am Tero M.D. Your AI Physician! How may I assist you?" }]
     },
   ]);
 
@@ -27,8 +34,8 @@ export function SymptomChecker() {
     if(isResponseLoading)
       return; //First wait for the Response
 
-    const historyWithUserPrompt = [...chatHistory, {role:'user', parts:[{text:prompt}]} ]; //Add User-Prompt to Chat-History
-    const modelMessage = {role:'model', parts:[{ text:'' }]}; //AI-Message Placeholder
+    const historyWithUserPrompt = [...chatHistory, {role:'user', parts:[{text:prompt}]} ];
+    const modelMessage = {role:'model', parts:[{ text:'' }]};
     setChatHistory([...historyWithUserPrompt, modelMessage]); 
     setPrompt('');
     
@@ -48,7 +55,7 @@ export function SymptomChecker() {
     catch (error) {
       console.error('Fetch Response Error:', error);
 
-      modelMessage.parts[0].text = "I'm sorry, but I encountered an error. Please try again later."; //Update the current Message with Error
+      modelMessage.parts[0].text = "I'm sorry, but I encountered an error. Please try again later.";
       setChatHistory([...historyWithUserPrompt, modelMessage]);
     }
     
@@ -56,14 +63,13 @@ export function SymptomChecker() {
   }
 
   async function readAndRenderStream(response) {
-    const reader = response.body.getReader(); //Read the Response Stream
+    const reader = response.body.getReader();
     const decoder = new TextDecoder();
 
-    const charBatchSize = 4; //Characters to update at Once
+    const charBatchSize = 4;
     let charQueue = [];
     let isRendering = false;
     
-    //They are defined here Again (Copy Pasted from above, rather than Passing them as Parameters)
     const historyWithUserPrompt = [...chatHistory, {role:'user', parts:[{text:prompt}]} ];
     const modelMessage = {role:'model', parts:[{ text:'' }]};
     
@@ -72,7 +78,7 @@ export function SymptomChecker() {
       if (done)
         break;
       
-      const chunk = decoder.decode(value, { stream: true }); //Get the Chunk of Streamed Data
+      const chunk = decoder.decode(value, { stream: true });
       const characters = chunk.split('');
       charQueue.push(...characters);
 
@@ -90,32 +96,34 @@ export function SymptomChecker() {
       modelMessage.parts[0].text += charQueue.splice(0,charBatchSize).join('');
       setChatHistory([...historyWithUserPrompt, modelMessage]);
       
-      scrollToEndRef.current.scrollTop = scrollToEndRef.current?.scrollHeight; //Scroll alongwith Content
-      requestAnimationFrame(renderCharacters); //For Smoother Animation
+      scrollToEndRef.current.scrollTop = scrollToEndRef.current?.scrollHeight;
+      requestAnimationFrame(renderCharacters);
     };
   }
 
   useEffect(() => {
     scrollToEndRef.current.scrollTop = scrollToEndRef.current?.scrollHeight;
-  }, 
-  [chatHistory]);
+  }, [chatHistory]);
   
   return (
-    <main className="flex flex-col min-h-screen items-center px-2 py-4 sm:px-8 sm:py-8 bg-slate-900">
-      <h1 className="text-center text-4xl p-2 text-slate-200">AI Chatbot</h1>
+    <section className="bg-[rgba(130,130,130,0.5)] rounded-3xl p-6 m-2 flex flex-col items-center justify-center h-5/8">
+      <h3 className={`text-white text-3xl font-bold mb-4 ${inter.variable}`}>✨ Symptom Checker ✨</h3>
 
-      <div className="flex flex-col flex-grow max-w-5xl w-full font-mono text-sm bg-slate-800 rounded-lg">
+      <div className="flex flex-col flex-grow max-w-2xl w-full mx-auto bg-gradient-to-b from-neutral-800/30 to-neutral-600/30 dark:from-neutral-800/90 dark:to-neutral-600/90 rounded-xl shadow-lg">
         
-        {/* Here, h-value doesn't Update due to Overrding flex-grow. But, it is neccesary to Fix the Scrolling Problem */}
-        <div ref={scrollToEndRef} className="flex-grow h-0 overflow-y-auto custom-scrollbar">
+        <div ref={scrollToEndRef} className="flex-grow h-0 overflow-y-auto">
           {chatHistory.map((message, index) => (
-            <div key={index} className={`m-4 ${message.role==='user' ? 'text-right':'text-left'}`}>
+            <div key={index} className={`m-4 ${message.role==='user' ? 'text-right' : 'text-left'}`}>
               
-              <p className="mb-1 mx-1 text-slate-400">
-                {message.role === 'user' ? 'You' : 'AI'}
+              <p className="mb-1 mx-1 text-neutral-300">
+                {message.role === 'user' ? 'You' : 'Assistant'}
               </p>
               {message.parts.map((part, index) => (
-                <div key={index} className={`rounded-md py-2 px-3 inline-block text-slate-200 ${message.role==='user' ? 'bg-green-900 text-left ml-8 sm:ml-20 rounded-tr-none' : 'bg-teal-900 mr-8 sm:mr-20 rounded-tl-none'}`}>
+                <div key={index} className={`rounded-xl py-3 px-4 inline-block transition-colors ${
+                  message.role==='user' 
+                    ? 'bg-blue-500 text-white text-left ml-8 sm:ml-20 rounded-tr-none' 
+                    : 'bg-white/30 dark:bg-white/0 backdrop-blur-md text-foreground mr-8 sm:mr-20 rounded-tl-none'
+                }`}>
                   <div className="whitespace-pre-line">{part.text}</div>
                 </div>
               ))}
@@ -123,16 +131,17 @@ export function SymptomChecker() {
           ))}
         </div>
         
-        <form className="flex p-2 border-t-2 border-slate-600 py-2 items-end" onSubmit={handleSendMessage}>
-          <textarea className="w-full border-2 border-slate-600 bg-slate-800 text-slate-200 rounded-md px-2 py-1 mr-1 resize-none custom-scrollbar focus:outline-0 focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+        <form className="flex p-4 border-t-2 border-neutral-300/30 dark:border-neutral-600 items-end" onSubmit={handleSendMessage}>
+          <textarea 
+            className="w-full bg-white/30 dark:bg-white/0 text-foreground rounded-xl px-4 py-3 mr-2 resize-none transition-all focus:outline-0 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={prompt}
             placeholder="Type your message here..."
             onChange={(e)=>setPrompt(e.target.value)}
-            rows={1} //Jnitial Height
+            rows={1}
             onInput={(e) => {
               e.target.style.height = 'auto';
               if(e.target.scrollHeight < 150) {
-                e.target.style.height = `${e.target.scrollHeight + 2}px`; //Increase the Height with Content
+                e.target.style.height = `${e.target.scrollHeight + 2}px`;
                 e.target.style.overflowY = 'hidden';
               }
               else {
@@ -142,15 +151,18 @@ export function SymptomChecker() {
             }}
             onKeyDown={(e) => {
               if (e.key==='Enter' && !e.shiftKey) 
-                handleSendMessage(e); //Send Message by Pressing Enter
+                handleSendMessage(e);
             }}
           />
-          <button className="border-2 border-slate-600 bg-gray-900 px-2 py-1 rounded-lg text-slate-300" type="submit">
+          <button 
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg transition-colors"
+            type="submit"
+          >
             Send
           </button>
         </form>
       </div>
 
-    </main>
+    </section>
   );
 }
