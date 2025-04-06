@@ -133,48 +133,48 @@ export function PatientsList() {
                     <div className="grid sm:grid-cols-2 gap-4 pt-1">
                       <div className="bg-white p-3 rounded-lg shadow-sm">
                         <span className="text-sm text-gray-500">Name</span>
-                        <div className="font-medium">{patient.name || 'Not provided'}</div>
+                        <div className="font-medium text-black">{patient.name || 'Not provided'}</div>
                       </div>
                       
                       {patient.age && (
                         <div className="bg-white p-3 rounded-lg shadow-sm">
                           <span className="text-sm text-gray-500">Age</span>
-                          <div className="font-medium">{patient.age}</div>
+                          <div className="font-medium text-black">{patient.age}</div>
                         </div>
                       )}
                       
                       {patient.sex && (
                         <div className="bg-white p-3 rounded-lg shadow-sm">
                           <span className="text-sm text-gray-500">Sex</span>
-                          <div className="font-medium">{patient.sex}</div>
+                          <div className="font-medium text-black">{patient.sex}</div>
                         </div>
                       )}
                       
                       {patient.race && (
                         <div className="bg-white p-3 rounded-lg shadow-sm">
                           <span className="text-sm text-gray-500">Race</span>
-                          <div className="font-medium">{patient.race}</div>
+                          <div className="font-medium text-black">{patient.race}</div>
                         </div>
                       )}
                       
                       {patient.ethnicity && (
                         <div className="bg-white p-3 rounded-lg shadow-sm">
                           <span className="text-sm text-gray-500">Ethnicity</span>
-                          <div className="font-medium">{patient.ethnicity}</div>
+                          <div className="font-medium text-black">{patient.ethnicity}</div>
                         </div>
                       )}
                       
                       {patient.weight && (
                         <div className="bg-white p-3 rounded-lg shadow-sm">
                           <span className="text-sm text-gray-500">Weight</span>
-                          <div className="font-medium">{patient.weight}</div>
+                          <div className="font-medium text-black">{patient.weight}</div>
                         </div>
                       )}
                       
                       {patient.phone && (
                         <div className="bg-white p-3 rounded-lg shadow-sm">
                           <span className="text-sm text-gray-500">Phone</span>
-                          <div className="font-medium">{patient.phone}</div>
+                          <div className="font-medium text-black">{patient.phone}</div>
                         </div>
                       )}
                     </div>
