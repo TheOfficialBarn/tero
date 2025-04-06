@@ -1,67 +1,98 @@
-'use client';
+"use client";
+import { updateCurrentUser } from "firebase/auth";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 
-import { useState } from 'react';
+function ChatContainer({ messages, chatbotIsTyping }) {
+  return (
+    <div>
+      {messages.map((message,index) => (
+        <div key={index}>
+          <strong>{message.role}:</strong> {message.parts.map(part => part.text).join(' ')}
+        </div>
+      ))}
+      <div hidden={!chatbotIsTyping}>Chatbot is typing...</div>
+    </div>
+  );
+}
 
-export default function SymptomChecker() {
-  const [input, setInput] = useState(''); // User input
-  const [response, setResponse] = useState(''); // API response
-  const [loading, setLoading] = useState(false); // Loading state
+export function SymptomChecker() {
+  const [chatHistory, setChatHistory] = useState(() => {
+    if (typeof window !== "undefined") {
+      const savedHistory = localStorage.getItem("chatHistory");
+      return savedHistory ? JSON.parse(savedHistory) : [];
+    }
+    return [];
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent form submission
-    setLoading(true); // Set loading state
-    setResponse(''); // Clear previous response
+  const [chatbotIsTyping, setChatbotIsTyping] = useState(false);
+  const [userMessage, setUserMessage] = useState("");
 
+  const getChatbotResponse = async (updatedChatHistory) => {
     try {
-      // Send user input to the /api/gemini endpoint
-      const res = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input }), // Send user input in the request body
+      const response = await fetch("api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedChatHistory),
       });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        console.error('Error from API:', errorData.error);
-        setResponse('Failed to fetch response from the API.');
-      } else {
-        const data = await res.json();
-        setResponse(data.contents?.[0]?.parts?.[0]?.text || 'No response'); // Extract response text
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+      setChatbotIsTyping(true);
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let done = false;
+      let result = "";
+
+      while(!done){
+        const chunk = await reader.read();
+        done = chunk.done;
+        result += decoder.decode(chunk.value, { stream: !done });
       }
+      console.log("Chatbot response:", result);
+      return result;
     } catch (error) {
-      console.error('Error during API call:', error);
-      setResponse('An error occurred while fetching the response.');
+      console.error("Error reading response:", error);
     } finally {
-      setLoading(false); // Reset loading state
+      setChatbotIsTyping(false);
     }
   };
 
-  return (
-    <div className="p-4 max-w-xl mx-auto">
-      <h3 className="text-2xl font-bold mb-4 text-center">✨ Symptom Checker ✨</h3>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <textarea
-          rows={4}
-          className="border rounded p-2"
-          placeholder="Describe your symptoms..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)} // Update input state
-        />
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-          disabled={loading} // Disable button while loading
-        >
-          {loading ? 'Thinking...' : 'Send'}
-        </button>
-      </form>
+  const handleSubmit = (event) => {
+    event.preventDefault();
 
-      {response && (
-        <div className="mt-6 p-4 bg-gray-100 rounded">
-          <strong>Response:</strong>
-          <p>{response}</p>
-        </div>
-      )}
+    // Format user message correctly
+    const newMessage = { role: "user", parts: [{ text: userMessage }] };
+    // Update chat history and ensure latest messages are sent to the server
+    const updatedChatHistory = [...chatHistory, newMessage]; // Fixed typo here
+    setChatHistory(updatedChatHistory);
+    getChatbotResponse(updatedChatHistory).then((chatbotResponse) => { // Also renamed parameter
+      const chatbotMessage = { role: "chatbot", parts: [{ text: chatbotResponse }]};
+      setChatHistory([...updatedChatHistory, chatbotMessage]);
+    });
+
+    setUserMessage("");
+    event.target.reset();
+  };
+
+  const handleTextChange = (event) => {
+    setUserMessage(event.target.value);
+  };
+
+  // Update chat history in local storage whenevr it changes
+  useEffect(() => {
+    localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+  }, [chatHistory]);
+
+  return(
+    <div>
+      <ChatContainer messages={chatHistory} chatbotIsTyping={chatbotIsTyping} />
+      <form onSubmit={handleSubmit}>
+        <input type="text" name="message" placeholder="Type here bitch" onChange={handleTextChange} value={userMessage} />
+        <button type="submit">Send</button>
+      </form>
     </div>
-  );
+  )
 }

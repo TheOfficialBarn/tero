@@ -1,63 +1,58 @@
-export { maxDuration, POST };const GEMINI_API_KEY = process.env.GEMINI_API_KEY; // Load the API key from environment variables
-const MODEL_ID = 'gemini-2.5-pro-preview-03-25'; // Model ID
-const GENERATE_CONTENT_API = 'streamGenerateContent'; // API endpoint
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { NextResponse } from "next/server";
 
-async function POST(req) {
+const apiKey = "AIzaSyCmr1pVHCsiJrl2hq9RkNEiTHwIle8wPTo";
+const genAI = new GoogleGenerativeAI(apiKey);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
+
+export async function POST(request) {
   try {
-    const body = await req.json();
-    const userInput = body.input || 'Default input text'; // Get user input from the request body
-
-    // Construct the request payload
-    const payload = {
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            {
-              text: userInput,
-            },
-          ],
-        },
-      ],
-      generationConfig: {
-        responseMimeType: 'text/plain',
-      },
-    };
-
-    // Make the POST request to the Gemini API
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}:${GENERATE_CONTENT_API}?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      }
-    );
-
-    // Handle the response
-    if (!response.ok) {
-      const error = await response.json();
-      console.error('Error from Gemini API:', error);
-      return new Response(JSON.stringify({ error: 'Failed to fetch response from Gemini API' }), {
-        status: response.status,
-        headers: { 'Content-Type': 'application/json' },
-      });
+    const chatHistory = await request.json();
+    if (!Array.isArray(chatHistory)) {
+      return NextResponse.json({error:" Invalid chat history format"});
     }
 
-    const data = await response.json();
-    return new Response(JSON.stringify(data), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
+    const systemInstruction = "You're an autistic";
+    console.log(" Sending request to Gemini API");
+
+    // Calling Gemini API
+    const response = await model.generateContentStream({
+      contents: chatHistory,
+      systemInstruction: systemInstruction
     });
+
+    console.log("RAW", response);
+
+    if(!response || typeof response !=="object") {
+      console.error("API returned invalid response", response);
+      return NextResponse.json({error: "Gemini API returned an invalid response"});
+    }
+
+    const { readable, writable } = new TransformStream();
+    const writer = writable.getWriter();
+    const encoder = new TextEncoder();
+
+    (async () => {
+      try {
+        for await (const chunk of response.stream) {
+          console.log(" Chunk received:", chunk);
+          if(chunk.text){
+            await writer.write(encoder.encode(chunk.text() + "\n"));
+          }
+        }
+      } catch (error) {
+        console.log("Could not process Gemini API response stream:", error);
+      } finally {
+        writer.close();
+      }
+    })();
+  
+  return new Response(readable, {
+    headers: { "Content-Type": "text/plain" }
+  });
+  
   } catch (error) {
-    console.error('Error in POST handler:', error);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    console.error("Error generating content:", error);
+    return NextResponse.error();
   }
 }
-
-export { POST };

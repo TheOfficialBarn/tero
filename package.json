@@ -9,9 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@ai-sdk/google": "^1.2.7",
     "@ethersproject/providers": "^5.8.0",
-    "ai": "^4.3.2",
+    "@google/generative-ai": "^0.24.0",
     "ethers": "^5.8.0",
     "firebase": "^11.6.0",
     "next": "^15.2.4",
