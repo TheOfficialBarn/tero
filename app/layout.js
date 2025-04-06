@@ -75,7 +75,7 @@ export default async function RootLayout({ children }) {
 				
 				{/* Status bar blur overlay */}
 				<PFP/>
-				<div className="h-screen overflow-y-scroll snap-y snap-mandatory">
+				<div className="h-screen overflow-y-scroll snap-y snap-mandatory mx-2">
 				{children}
 				<NavBar/>
 				</div>

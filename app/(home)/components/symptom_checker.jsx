@@ -106,7 +106,7 @@ export function SymptomChecker() {
   }, [chatHistory]);
   
   return (
-    <section className="bg-[rgba(130,130,130,0.5)] rounded-3xl p-6 flex flex-col items-center justify-center h-5/8">
+    <section className="bg-[rgba(130,130,130,0.5)] rounded-3xl p-6 flex flex-col items-center justify-center h-5/8 w-full">
       <h3 className={`text-white text-3xl font-bold mb-4 ${inter.variable}`}>✨ Symptom Checker ✨</h3>
 
       <div className="flex flex-col flex-grow max-w-2xl w-full mx-auto bg-gradient-to-b from-neutral-800/30 to-neutral-600/30 dark:from-neutral-800/90 dark:to-neutral-700/90 rounded-xl shadow-lg">

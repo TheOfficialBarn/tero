@@ -53,10 +53,10 @@ return (
 	) : (
 		<>
 		{/* IS PATIENT */}
-		<section className="h-screen flex items-center justify-center snap-start ">
+		<section className="h-screen flex items-center justify-center snap-start">
 			<Profile />
 		</section>
-		<section className="h-screen flex items-center justify-center snap-start ">
+		<section className="h-screen flex items-center justify-center snap-start">
 			<SymptomChecker />
 		</section>
 		</>
