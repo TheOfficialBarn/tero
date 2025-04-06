@@ -54,18 +54,12 @@ export default function FileList() {
     }
   };
 
-  // components/file_list.jsx
   useEffect(() => {
-    const checkConnection = async () => {
-      if (walletAddress) {
-        await refreshFiles();
-      } else if (isMobile() && isPWA()) {
-        // Delay mobile instructions display
-        setTimeout(() => setShowMobileInstructions(true), 2000);
-      }
-    };
-    checkConnection();
+    if (walletAddress) {
+      refreshFiles();
+    }
   }, [walletAddress]);
+
   return (
     <div className="rounded-3xl p-6 m-4 flex flex-col gap-4 w-full max-w-2xl mx-auto h-5/8 bg-white/30 backdrop-blur-md dark:bg-white/0 dark:from-neutral-800/50 dark:to-neutral-600/50 dark:bg-gradient-to-b">
       {showMobileInstructions && (
@@ -290,3 +284,5 @@ function FileItem({ file, onDelete, provider }) {
     </div>
   );
 }
+
+
