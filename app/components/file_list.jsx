@@ -7,6 +7,7 @@ export default function FileList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  //refreshes the files, makes sure that the pinata files are up to date
   const refreshFiles = async () => {
     setLoading(true);
     try {
@@ -25,7 +26,7 @@ export default function FileList() {
     refreshFiles();
   }, []);
 
-  return (
+  return (  //button that refreshes file
     <div className="max-w-2xl mx-auto p-4">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Your Files</h2>
@@ -51,36 +52,36 @@ export default function FileList() {
         </div>
       )}
     </div>
-  );
+  );  // end of refresh button
 }
 
 function FileItem({ file, onDelete }) {
   const [isDecrypting, setIsDecrypting] = useState(false);
 
-  const handleDecrypt = async () => {
+  const handleDecrypt = async () => { // this funciton handles the decryption
     setIsDecrypting(true);
     try {
       if (!window.ethereum) throw new Error("Ethereum wallet not detected");
 
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const signer = provider.getSigner();
-      const address = await signer.getAddress();
+      const provider = new ethers.providers.Web3Provider(window.ethereum); //auth through metamask
+      await provider.send("eth_requestAccounts", []); 
+      const signer = provider.getSigner(); //gets signer
+      const address = await signer.getAddress(); //gets address
 
       if (
         file.keyOwner &&
-        file.keyOwner.toLowerCase() !== address.toLowerCase()
+        file.keyOwner.toLowerCase() !== address.toLowerCase() //checks if person is key owner
       ) {
         throw new Error("You don't have permission to decrypt this file");
       }
 
-      const res = await fetch(file.url);
+      const res = await fetch(file.url); 
       if (!res.ok) throw new Error("Failed to download file");
       const encryptedBlob = await res.blob();
       const encryptedData = await encryptedBlob.arrayBuffer();
 
       // Extract salt, iv, ciphertext
-      const salt = encryptedData.slice(0, 16);
+      const salt = encryptedData.slice(0, 16); //slices to check with metadata
       const iv = encryptedData.slice(16, 28);
       const ciphertext = encryptedData.slice(28);
 
@@ -124,7 +125,7 @@ function FileItem({ file, onDelete }) {
 	type: file.mimeType || "application/pdf", // default pdf file 
       });
       const url = URL.createObjectURL(decryptedBlob);
-      window.open(url, "_blank");
+      window.open(url, "_blank"); //opens the window in a new tab
     } catch (err) {
       console.error("Decryption failed:", err);
       alert(`Decryption failed: ${err.message}`);
@@ -133,7 +134,7 @@ function FileItem({ file, onDelete }) {
     }
   };
 
-  return (
+  return ( // ui for the list of files (medical records) BARN FIX
     <div className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
       <div className="flex justify-between items-center">
         <div>

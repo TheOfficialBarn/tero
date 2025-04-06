@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ethers } from "ethers";
 import * as eccryptoJS from "eccrypto-js";
 
@@ -7,41 +7,52 @@ export default function UploadFile() {
   const [file, setFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
+  const [userAddress, setUserAddress] = useState(null);
+  const [userSignature, setUserSignature] = useState(null);
   const fileInputRef = useRef(null);
 
+  // Request wallet access and signature once when the component mounts
+  useEffect(() => {
+    const initializeWallet = async () => {
+      if (window.ethereum) {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+        const address = await signer.getAddress();
+        const signature = await signer.signMessage("Access file encryption key");
+
+        setUserAddress(address);
+        setUserSignature(signature);
+      } else {
+        console.warn("Ethereum wallet not detected");
+      }
+    };
+
+    initializeWallet();
+  }, []);
+
   const handleButtonClick = () => {
-    fileInputRef.current.click();
+    fileInputRef.current.click(); 
   };
 
   const getEncryptedKey = async (plaintextKey) => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    const signer = provider.getSigner();
-
-    const address = await signer.getAddress();
-    const message = "Access file encryption key";
-    const signature = await signer.signMessage(message);
-
-    const hashedMsg = ethers.utils.hashMessage(message);
-    const recoveredPubKeyHex = ethers.utils.recoverPublicKey(
-      hashedMsg,
-      signature,
-    ); // Uncompressed
-    const publicKeyBuffer = Buffer.from(recoveredPubKeyHex.slice(2), "hex"); // Remove '0x'
-
-    // Check if valid uncompressed format
-    if (publicKeyBuffer.length !== 65 || publicKeyBuffer[0] !== 0x04) {
-      throw new Error(
-        "Recovered public key is not in correct uncompressed format",
-      );
+    if (!userAddress || !userSignature) {
+      throw new Error("User not signed in. Please sign in first.");
     }
 
-    const encryptedBuffer = await eccryptoJS.encrypt(
-      publicKeyBuffer,
-      Buffer.from(plaintextKey),
-    );
+    const hashedMsg = ethers.utils.hashMessage("Access file encryption key");
+    const recoveredPubKeyHex = ethers.utils.recoverPublicKey(
+      hashedMsg,
+      userSignature,
+    ); // Uncompressed
+    const publicKeyBuffer = Buffer.from(recoveredPubKeyHex.slice(2), "hex");
 
-    // Convert encrypted parts to base64 strings for metadata
+    if (publicKeyBuffer.length !== 65 || publicKeyBuffer[0] !== 0x04) {
+      throw new Error("Recovered public key is not in correct uncompressed format");
+    }
+
+    const encryptedBuffer = await eccryptoJS.encrypt(publicKeyBuffer, Buffer.from(plaintextKey));
+
     const encryptedKey = {
       iv: encryptedBuffer.iv.toString("base64"),
       ephemPublicKey: encryptedBuffer.ephemPublicKey.toString("base64"),
@@ -52,7 +63,7 @@ export default function UploadFile() {
     return {
       encryptedKey: JSON.stringify(encryptedKey),
       publicKey: recoveredPubKeyHex,
-      address,
+      address: userAddress,
     };
   };
 
@@ -63,14 +74,7 @@ export default function UploadFile() {
     }
 
     try {
-      // Prompt switch to Mainnet
-      await window.ethereum.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: "0x1" }],
-      });
-
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
 
       const contract = new ethers.Contract(
@@ -89,10 +93,8 @@ export default function UploadFile() {
     }
   };
 
-  //bellow is where the file is encrypted
   const encryptFile = async (file, password) => {
     try {
-      // Convert password to key
       const encoder = new TextEncoder();
       const keyMaterial = await crypto.subtle.importKey(
         "raw",
@@ -124,7 +126,6 @@ export default function UploadFile() {
         fileBuffer,
       );
 
-      // Combine salt + iv + encrypted data
       const encryptedBlob = new Blob([salt, iv, new Uint8Array(encrypted)], {
         type: "application/octet-stream",
       });
@@ -142,9 +143,15 @@ export default function UploadFile() {
       setUploadError(null);
     }
   };
+
   const handleUpload = async () => {
     if (!file) {
       setUploadError("Please select a file first");
+      return;
+    }
+
+    if (!userAddress || !userSignature) {
+      setUploadError("Please connect your wallet first");
       return;
     }
 
@@ -152,20 +159,10 @@ export default function UploadFile() {
     setUploadError(null);
 
     try {
-      // Derive encryption key from wallet signature
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const signer = provider.getSigner();
-      const signature = await signer.signMessage("Access file encryption key");
-      const password = signature; // Use this as the AES password
-
-      // Encrypt the file
+      const password = userSignature; // Use the signature as the AES password
       const encryptedFile = await encryptFile(file, password);
-      //Gets the encryptedkey
-      const { encryptedKey, publicKey, address } =
-        await getEncryptedKey(password);
+      const { encryptedKey, publicKey, address } = await getEncryptedKey(password);
 
-      // Structure metadata properly for Pinata
       const metadata = {
         name: `${file.name}.enc`,
         keyvalues: {
@@ -248,3 +245,4 @@ export default function UploadFile() {
     </div>
   );
 }
+
