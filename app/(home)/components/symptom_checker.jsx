@@ -1,6 +1,4 @@
 "use client";
-import { updateCurrentUser } from "firebase/auth";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 
 function ChatContainer({ messages, chatbotIsTyping }) {
@@ -17,20 +15,14 @@ function ChatContainer({ messages, chatbotIsTyping }) {
 }
 
 export function SymptomChecker() {
-  const [chatHistory, setChatHistory] = useState(() => {
-    if (typeof window !== "undefined") {
-      const savedHistory = localStorage.getItem("chatHistory");
-      return savedHistory ? JSON.parse(savedHistory) : [];
-    }
-    return [];
-  });
-
+  // Replace localStorage initialization with empty array
+  const [chatHistory, setChatHistory] = useState([]);
   const [chatbotIsTyping, setChatbotIsTyping] = useState(false);
   const [userMessage, setUserMessage] = useState("");
 
   const getChatbotResponse = async (updatedChatHistory) => {
     try {
-      const response = await fetch("api/chat", {
+      const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -66,9 +58,9 @@ export function SymptomChecker() {
     // Format user message correctly
     const newMessage = { role: "user", parts: [{ text: userMessage }] };
     // Update chat history and ensure latest messages are sent to the server
-    const updatedChatHistory = [...chatHistory, newMessage]; // Fixed typo here
+    const updatedChatHistory = [...chatHistory, newMessage];
     setChatHistory(updatedChatHistory);
-    getChatbotResponse(updatedChatHistory).then((chatbotResponse) => { // Also renamed parameter
+    getChatbotResponse(updatedChatHistory).then((chatbotResponse) => {
       const chatbotMessage = { role: "chatbot", parts: [{ text: chatbotResponse }]};
       setChatHistory([...updatedChatHistory, chatbotMessage]);
     });
@@ -81,16 +73,11 @@ export function SymptomChecker() {
     setUserMessage(event.target.value);
   };
 
-  // Update chat history in local storage whenevr it changes
-  useEffect(() => {
-    localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
-  }, [chatHistory]);
-
   return(
     <div>
       <ChatContainer messages={chatHistory} chatbotIsTyping={chatbotIsTyping} />
       <form onSubmit={handleSubmit}>
-        <input type="text" name="message" placeholder="Type here bitch" onChange={handleTextChange} value={userMessage} />
+        <input type="text" name="message" placeholder="Type your message here" onChange={handleTextChange} value={userMessage} />
         <button type="submit">Send</button>
       </form>
     </div>
