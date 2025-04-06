@@ -16,8 +16,38 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
       const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
         if (currentUser) {
-          const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-          setUser({ ...currentUser, ...userDoc.data() });
+          try {
+            // Check if user exists in 'users' collection (patients)
+            const patientDoc = await getDoc(doc(db, 'users', currentUser.uid));
+            
+            if (patientDoc.exists()) {
+              // User is a patient
+              setUser({ 
+                ...currentUser, 
+                ...patientDoc.data(),
+                userType: 'patient' 
+              });
+            } else {
+              // Check if user exists in 'hosts' collection
+              const hostDoc = await getDoc(doc(db, 'hosts', currentUser.uid));
+              
+              if (hostDoc.exists()) {
+                // User is a host
+                setUser({ 
+                  ...currentUser, 
+                  ...hostDoc.data(),
+                  userType: 'host' 
+                });
+              } else {
+                // User exists in Firebase Auth but not in Firestore
+                console.warn('User exists in Auth but not in Firestore:', currentUser.uid);
+                setUser({ ...currentUser, userType: 'unknown' });
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching user data:', error);
+            setUser({ ...currentUser, userType: 'unknown' });
+          }
         } else {
           setUser(null);
         }
@@ -33,4 +63,3 @@ export const AuthProvider = ({ children }) => {
       </AuthContext.Provider>
     );
   };
-  
