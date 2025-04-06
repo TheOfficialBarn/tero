@@ -209,7 +209,7 @@ export default function UploadFile() {
     }
   };
 
-  return (
+  return ( // PLS FIX BARN ==========================================================
     <div className="flex flex-col items-center justify-center gap-4 p-6 max-w-md mx-auto">
       <h1 className="text-2xl font-bold mb-4">Upload to IPFS</h1>
 
