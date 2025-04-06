@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { Geist } from "next/font/google";
+import { connectWallet, isMobile, isPWA } from "/lib/wallet";
 
 const geist = Geist({
   variable: "--font-geist-sans",
@@ -13,30 +14,34 @@ export default function FileList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [walletAddress, setWalletAddress] = useState(null);
+  const [showMobileInstructions, setShowMobileInstructions] = useState(false);
+  const [provider, setProvider] = useState(null);
 
-  const connectWallet = async () => {
-    if (!window.ethereum) {
-      setError("Ethereum wallet not detected");
-      return null;
-    }
+  const connectWalletHandler = async () => {
     try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const signer = provider.getSigner();
-      const address = await signer.getAddress();
-      setWalletAddress(address);
-      return address;
+      setError(null);
+      const connection = await connectWallet();
+      if (connection) {
+        setWalletAddress(connection.address);
+        setProvider(connection.provider);
+        return connection;
+      } else if (isMobile() && isPWA()) {
+        setShowMobileInstructions(true);
+      }
     } catch (err) {
       setError("Failed to connect wallet: " + err.message);
-      return null;
     }
   };
 
   const refreshFiles = async () => {
     setLoading(true);
     try {
-      const address = walletAddress || (await connectWallet());
-      if (!address) return;
+      let address = walletAddress;
+      if (!address) {
+        const connection = await connectWalletHandler(); // Now this returns the connection object
+        if (!connection) return;
+        address = connection.address;
+      }
 
       const res = await fetch(`/api/uploadToPinata?wallet=${address}`);
       const data = await res.json();
@@ -57,16 +62,51 @@ export default function FileList() {
 
   return (
     <div className="rounded-3xl p-6 m-4 flex flex-col gap-4 w-full max-w-2xl mx-auto h-5/8 bg-white/30 backdrop-blur-md dark:bg-white/0 dark:from-neutral-800/50 dark:to-neutral-600/50 dark:bg-gradient-to-b">
+      {showMobileInstructions && (
+        <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg
+                className="h-5 w-5 text-yellow-500"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-yellow-700">
+                For the best experience on iOS, please open this PWA in your
+                browser or install MetaMask mobile app.
+                <a
+                  href={`https://metamask.app.link/dapp/${window.location.host}`}
+                  className="font-medium underline text-yellow-700 hover:text-yellow-600 ml-1"
+                >
+                  Open in MetaMask
+                </a>
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between items-center">
         <h3
           className={`text-foreground text-2xl font-bold ${geist.variable} font-[family-name:var(--font-geist-sans)]`}
         >
-          {walletAddress ? "✨ Your Medical Records ✨" : "Connect Wallet to View Files"}
+          {walletAddress
+            ? "✨ Your Medical Records ✨"
+            : "Connect Wallet to View Files"}
         </h3>
         <div className="flex gap-2">
           {!walletAddress ? (
             <button
-              onClick={connectWallet}
+              onClick={connectWalletHandler}
               className="px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-300 flex items-center gap-2"
             >
               Connect Wallet
@@ -121,7 +161,12 @@ export default function FileList() {
         ) : (
           <div className="space-y-3">
             {files.map((file) => (
-              <FileItem key={file.id} file={file} onDelete={refreshFiles} />
+              <FileItem
+                key={file.id}
+                file={file}
+                onDelete={refreshFiles}
+                provider={provider}
+              />
             ))}
           </div>
         )}
@@ -130,16 +175,15 @@ export default function FileList() {
   );
 }
 
-function FileItem({ file, onDelete }) {
+function FileItem({ file, onDelete, provider }) {
   const [isDecrypting, setIsDecrypting] = useState(false);
 
   const handleDecrypt = async () => {
     setIsDecrypting(true);
     try {
-      if (!window.ethereum) throw new Error("Ethereum wallet not detected");
+      if (!provider) throw new Error("Wallet provider not available");
 
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
+      // Use the provider passed from parent component
       const signer = provider.getSigner();
       const address = await signer.getAddress();
 
@@ -167,7 +211,7 @@ function FileItem({ file, onDelete }) {
         encoder.encode(signature),
         "PBKDF2",
         false,
-        ["deriveKey"]
+        ["deriveKey"],
       );
 
       const aesKey = await crypto.subtle.deriveKey(
@@ -180,13 +224,13 @@ function FileItem({ file, onDelete }) {
         keyMaterial,
         { name: "AES-GCM", length: 256 },
         false,
-        ["decrypt"]
+        ["decrypt"],
       );
 
       const decryptedContent = await crypto.subtle.decrypt(
         { name: "AES-GCM", iv: new Uint8Array(iv) },
         aesKey,
-        ciphertext
+        ciphertext,
       );
 
       // Create a download with the proper filename and type

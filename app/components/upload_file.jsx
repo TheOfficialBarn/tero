@@ -1,7 +1,9 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ethers } from "ethers";
 import * as eccryptoJS from "eccrypto-js";
+import { connectWallet, isMobile, isPWA } from "/lib/wallet";
+import FileItem from "./file_list"; // Assuming FileItem is a reusable component
 
 export default function UploadFile() {
   const [file, setFile] = useState(null);
@@ -9,38 +11,42 @@ export default function UploadFile() {
   const [uploadError, setUploadError] = useState(null);
   const [walletAddress, setWalletAddress] = useState(null);
   const [userSignature, setUserSignature] = useState(null);
-  const [connectingWallet, setConnectingWallet] = useState(false); // ✅ Add this line
+  const [connectingWallet, setConnectingWallet] = useState(false);
+  const [files, setFiles] = useState([]); // Maintain a list of uploaded files
 
   const fileInputRef = useRef(null);
 
-  const connectWallet = async () => {
-    if (!window.ethereum) {
-      setUploadError("Ethereum wallet not detected");
-      return false;
+  useEffect(() => {
+    if (walletAddress) {
+      // Optional: fetch uploaded files when wallet is connected
+      fetchUploadedFiles();
     }
+  }, [walletAddress]);
 
-    if (connectingWallet) return; // Prevent duplicate calls
+  const connectWalletHandler = async () => {
+    if (connectingWallet) return;
     setConnectingWallet(true);
+    setUploadError(null);
 
     try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const signer = provider.getSigner();
-      const address = await signer.getAddress();
+      const connection = await connectWallet();
+      if (!connection) {
+        if (isMobile() && isPWA()) {
+          setUploadError(
+            "Please open in browser or MetaMask app for full functionality"
+          );
+        }
+        return;
+      }
+
+      const { provider, signer, address } = connection;
       const signature = await signer.signMessage("Access file encryption key");
 
       setWalletAddress(address);
       setUserSignature(signature);
-      return { address, signature };
+      return { address, signature, provider, signer };
     } catch (err) {
-      if (err.code === -32002) {
-        setUploadError(
-          "MetaMask is already processing a connection request. Please check your wallet.",
-        );
-      } else {
-        setUploadError("Wallet connection failed: " + err.message);
-      }
-      return false;
+      setUploadError("Wallet connection failed: " + err.message);
     } finally {
       setConnectingWallet(false);
     }
@@ -51,6 +57,18 @@ export default function UploadFile() {
     if (e.target.files?.[0]) {
       setFile(e.target.files[0]);
       setUploadError(null);
+    }
+  };
+
+  // Fetch uploaded files from Pinata (or any other source)
+  const fetchUploadedFiles = async () => {
+    try {
+      const res = await fetch(`/api/fetchUploadedFiles?wallet=${walletAddress}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to fetch files");
+      setFiles(data.files);
+    } catch (err) {
+      setUploadError(err.message);
     }
   };
 
@@ -69,7 +87,7 @@ export default function UploadFile() {
       const wallet =
         walletAddress && userSignature
           ? { address: walletAddress, signature: userSignature }
-          : await connectWallet();
+          : await connectWalletHandler();
 
       if (!wallet) return; // Connection failed
 
@@ -114,7 +132,18 @@ export default function UploadFile() {
       // 5. Store reference on blockchain
       await storeOnBlockchain(data.IpfsHash, metadata);
 
-      // 6. Reset form
+      // 6. Update the list of files
+      setFiles((prevFiles) => [
+        ...prevFiles,
+        {
+          id: data.IpfsHash,
+          name: file.name,
+          url: `https://gateway.pinata.cloud/ipfs/${data.IpfsHash}`,
+          ...metadata.keyvalues,
+        },
+      ]);
+
+      // 7. Reset form
       alert(`File uploaded successfully!\nIPFS CID: ${data.IpfsHash}`);
       setFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -136,7 +165,7 @@ export default function UploadFile() {
     const publicKeyBuffer = Buffer.from(publicKey.slice(2), "hex");
     const encryptedBuffer = await eccryptoJS.encrypt(
       publicKeyBuffer,
-      Buffer.from(signature),
+      Buffer.from(signature)
     );
     return JSON.stringify({
       iv: encryptedBuffer.iv.toString("base64"),
@@ -153,7 +182,7 @@ export default function UploadFile() {
       encoder.encode(password),
       "PBKDF2",
       false,
-      ["deriveKey"],
+      ["deriveKey"]
     );
 
     const salt = crypto.getRandomValues(new Uint8Array(16));
@@ -162,14 +191,14 @@ export default function UploadFile() {
       keyMaterial,
       { name: "AES-GCM", length: 256 },
       false,
-      ["encrypt"],
+      ["encrypt"]
     );
 
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const encrypted = await crypto.subtle.encrypt(
       { name: "AES-GCM", iv },
       key,
-      await file.arrayBuffer(),
+      await file.arrayBuffer()
     );
 
     return new Blob([salt, iv, new Uint8Array(encrypted)], {
@@ -188,7 +217,7 @@ export default function UploadFile() {
         [
           "function storeFile(string memory ipfsHash, string memory metadata) public",
         ],
-        signer,
+        signer
       );
       const tx = await contract.storeFile(ipfsHash, JSON.stringify(metadata));
       await tx.wait();
@@ -197,13 +226,14 @@ export default function UploadFile() {
       throw error;
     }
   };
+
   return (
     <div className="flex flex-col items-center justify-center gap-4 p-6 max-w-md mx-auto">
       <h1 className="text-2xl font-bold mb-4">Upload to IPFS</h1>
 
       {/* Login Button */}
       <button
-        onClick={connectWallet}
+        onClick={connectWalletHandler}
         disabled={isUploading}
         className="w-full px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
       >
@@ -242,6 +272,24 @@ export default function UploadFile() {
       {uploadError && (
         <p className="text-red-500 text-sm mt-2">{uploadError}</p>
       )}
+
+      {/* Display uploaded files */}
+      {files.length > 0 && (
+        <div className="mt-6 w-full">
+          <h2 className="text-xl font-bold mb-4">Uploaded Files</h2>
+          <div className="space-y-3">
+            {files.map((file) => (
+              <FileItem
+                key={file.id}
+                file={file}
+                onDelete={() => fetchUploadedFiles()} // Refresh files
+                provider={null} // You can pass a provider if needed
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
