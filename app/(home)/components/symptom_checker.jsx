@@ -122,7 +122,7 @@ export function SymptomChecker() {
                 <div key={index} className={`rounded-xl py-3 px-4 inline-block transition-colors ${
                   message.role==='user' 
                     ? 'bg-blue-500 text-white text-left ml-8 sm:ml-20 rounded-tr-none' 
-                    : 'bg-white/30 dark:bg-white/30 backdrop-blur-md text-foreground mr-8 sm:mr-20 rounded-tl-none'
+                    : 'bg-white/30 dark:bg-white/30 backdrop-blur-md text-white mr-8 sm:mr-20 rounded-tl-none'
                 }`}>
                   <div className="whitespace-pre-line">{part.text}</div>
                 </div>
