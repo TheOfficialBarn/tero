@@ -51,7 +51,6 @@ export function NavBar() {
     <div className="flex justify-center w-full">
       <nav
         className="
-          sm:hidden
           fixed
           bottom-5
           bg-gradient-to-b from-neutral-200/90 dark:from-neutral-800/90 to-neutral-400/90 dark:to-neutral-600/90

@@ -106,10 +106,10 @@ export function SymptomChecker() {
   }, [chatHistory]);
   
   return (
-    <section className="bg-[rgba(130,130,130,0.5)] rounded-3xl p-6 m-2 flex flex-col items-center justify-center h-5/8">
+    <section className="bg-[rgba(130,130,130,0.5)] rounded-3xl p-6 flex flex-col items-center justify-center h-5/8">
       <h3 className={`text-white text-3xl font-bold mb-4 ${inter.variable}`}>✨ Symptom Checker ✨</h3>
 
-      <div className="flex flex-col flex-grow max-w-2xl w-full mx-auto bg-gradient-to-b from-neutral-800/30 to-neutral-600/30 dark:from-neutral-800/90 dark:to-neutral-600/90 rounded-xl shadow-lg">
+      <div className="flex flex-col flex-grow max-w-2xl w-full mx-auto bg-gradient-to-b from-neutral-800/30 to-neutral-600/30 dark:from-neutral-800/90 dark:to-neutral-700/90 rounded-xl shadow-lg">
         
         <div ref={scrollToEndRef} className="flex-grow h-0 overflow-y-auto">
           {chatHistory.map((message, index) => (
@@ -122,7 +122,7 @@ export function SymptomChecker() {
                 <div key={index} className={`rounded-xl py-3 px-4 inline-block transition-colors ${
                   message.role==='user' 
                     ? 'bg-blue-500 text-white text-left ml-8 sm:ml-20 rounded-tr-none' 
-                    : 'bg-white/30 dark:bg-white/0 backdrop-blur-md text-foreground mr-8 sm:mr-20 rounded-tl-none'
+                    : 'bg-white/30 dark:bg-white/30 backdrop-blur-md text-foreground mr-8 sm:mr-20 rounded-tl-none'
                 }`}>
                   <div className="whitespace-pre-line">{part.text}</div>
                 </div>
@@ -133,7 +133,7 @@ export function SymptomChecker() {
         
         <form className="flex p-4 border-t-2 border-neutral-300/30 dark:border-neutral-600 items-end" onSubmit={handleSendMessage}>
           <textarea 
-            className="w-full bg-white/30 dark:bg-white/0 text-foreground rounded-xl px-4 py-3 mr-2 resize-none transition-all focus:outline-0 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full bg-white/30 dark:bg-white/10 text-foreground rounded-xl px-4 py-3 mr-2 resize-none transition-all focus:outline-0 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={prompt}
             placeholder="Type your message..."
             onChange={(e)=>setPrompt(e.target.value)}
