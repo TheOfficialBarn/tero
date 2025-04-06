@@ -257,7 +257,7 @@ export default function Page() {
 
 	return user ? (
 		<section className="h-screen flex justify-center items-center w-full">
-			<div className="bg-[rgba(130,130,130,0.5)] rounded-3xl p-6 flex flex-col items-center justify-center ">
+			<div className="bg-[rgba(130,130,130,0.5)] rounded-3xl p-6 flex flex-col items-center justify-center w-full">
 			<h3 className={`text-white text-3xl font-bold mb-4 text-center ${inter.variable}`}>Logged In 🥳</h3>
 			<button
 				onClick={handleLogout}
@@ -265,12 +265,12 @@ export default function Page() {
 			>
 				Logout
 			</button>
-			<p className="mt-4">Logged in as: {user.email}</p>
+			<p className="mt-4">Account: <code>{user.email}</code></p>
 			</div>
 		</section>
 	) : (
 		<section className="h-screen flex justify-center items-center w-full">
-			<div className="bg-[rgba(130,130,130,0.5)] rounded-3xl p-6 m-2 flex flex-col items-center justify-center ">
+			<div className="bg-[rgba(130,130,130,0.5)] rounded-3xl p-6 flex flex-col items-center justify-center w-full">
 				<h3 className={`text-white text-3xl font-bold mb-4 text-center ${inter.variable}`}>
 					Secure. Easy.
 				</h3>
@@ -304,7 +304,7 @@ export default function Page() {
 					</button>
 					{!isLogin && (
 						<p 
-							className="mt-2 text-sm text-blue-500 cursor-pointer"
+							className="flex justify-center mt-4 text-sm text-blue-300 dark:text-blue-500 cursor-pointer"
 							onClick={() => setIsPatient(!isPatient)}
 						>
 							{isPatient ? 'Sign Up as a Host' : 'Sign Up as a Patient'}
