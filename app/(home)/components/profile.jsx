@@ -45,7 +45,7 @@
 				<p><strong>Name:</strong> {profileData.name || "N/A"}</p>
 				<p><strong>Email:</strong> {user.email}</p>
 				<p><strong>Age:</strong> {profileData.age || "N/A"}</p>
-				<p><strong>Gender:</strong> {profileData.gender || "N/A"}</p>
+				<p><strong>Gender:</strong> {profileData.sex || "N/A"}</p>
 				</div>
 			) : (
 				<p className="text-white">Loading profile...</p>
