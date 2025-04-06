@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef } from "react";
 import { ethers } from "ethers";
+import * as eccryptoJS from "eccrypto-js";
 
 export default function UploadFile() {
   const [file, setFile] = useState(null);
@@ -16,24 +17,43 @@ export default function UploadFile() {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     await provider.send("eth_requestAccounts", []);
     const signer = provider.getSigner();
-    const address = await signer.getAddress();
 
-    // Get public key from wallet
-    const message = "Access file encryption key"; // can be anything
+    const address = await signer.getAddress();
+    const message = "Access file encryption key";
     const signature = await signer.signMessage(message);
-    const publicKey = ethers.utils.recoverPublicKey(
-      ethers.utils.hashMessage(message),
+
+    const hashedMsg = ethers.utils.hashMessage(message);
+    const recoveredPubKeyHex = ethers.utils.recoverPublicKey(
+      hashedMsg,
       signature,
+    ); // Uncompressed
+    const publicKeyBuffer = Buffer.from(recoveredPubKeyHex.slice(2), "hex"); // Remove '0x'
+
+    // Check if valid uncompressed format
+    if (publicKeyBuffer.length !== 65 || publicKeyBuffer[0] !== 0x04) {
+      throw new Error(
+        "Recovered public key is not in correct uncompressed format",
+      );
+    }
+
+    const encryptedBuffer = await eccryptoJS.encrypt(
+      publicKeyBuffer,
+      Buffer.from(plaintextKey),
     );
 
-    // Encrypt the password (e.g., AES key) using ECIES-like scheme
-    // For simplicity, you can encrypt using `crypto.subtle` with a derived key from the publicKey
-    // or use libraries like `eccrypto` (Node.js/Browser-compatible)
+    // Convert encrypted parts to base64 strings for metadata
+    const encryptedKey = {
+      iv: encryptedBuffer.iv.toString("base64"),
+      ephemPublicKey: encryptedBuffer.ephemPublicKey.toString("base64"),
+      ciphertext: encryptedBuffer.ciphertext.toString("base64"),
+      mac: encryptedBuffer.mac.toString("base64"),
+    };
 
-    // Placeholder for actual ECIES or derived key encryption
-    const encryptedKey = btoa(plaintextKey); // ← Replace with real encryption in production
-
-    return { encryptedKey, publicKey, address };
+    return {
+      encryptedKey: JSON.stringify(encryptedKey),
+      publicKey: recoveredPubKeyHex,
+      address,
+    };
   };
 
   const storeOnBlockchain = async (ipfsHash, metadata) => {
@@ -174,6 +194,7 @@ export default function UploadFile() {
       });
 
       const data = await response.json();
+      console.log(data);
 
       if (!response.ok) throw new Error(data.error || "Upload failed");
 
