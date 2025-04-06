@@ -42,7 +42,7 @@ export function Profile() {
   }, []);
 
   return (
-    <section className="bg-gradient-to-br from-neutral-600/60 to-neutral-500/60 rounded-3xl shadow-xl flex flex-col w-full sm:w-1/2 overflow-hidden transition-all duration-300 hover:shadow-2xl">
+    <section className="bg-white/30 backdrop-blur-md dark:bg-white/0 dark:from-neutral-800/50 dark:to-neutral-600/50 dark:bg-gradient-to-b rounded-3xl shadow-xl flex flex-col w-full sm:w-1/2 overflow-hidden transition-all duration-300 hover:shadow-2xl">
       <div className="bg-gradient-to-d from-white to-neutral-600 p-6">
         <h3 className={`text-white text-3xl font-bold text-center ${inter.variable}`}>Profile</h3>
       </div>
@@ -69,8 +69,8 @@ export function Profile() {
             )}
           </div>
           
-          <div className="bg-white/5 rounded-xl p-6 w-full max-w-md backdrop-blur-sm">
-            <div className="space-y-4 text-white">
+          <div className="bg-white/20 rounded-xl p-6 w-full max-w-md backdrop-blur-sm">
+            <div className="space-y-4 text-neutral-800 dark:text-white">
               <div className="flex items-center space-x-3">
                 <svg className="w-5 h-5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                 <div><span className="text-gray-400">Name:</span> {profileData.name || "Not set"}</div>
