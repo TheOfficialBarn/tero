@@ -22,28 +22,67 @@ export default function UploadFile() {
       fetchUploadedFiles();
     }
   }, [walletAddress]);
-
-  // components/upload_file.jsx
   const connectWalletHandler = async () => {
     if (connectingWallet) return;
     setConnectingWallet(true);
     setUploadError(null);
 
     try {
-      // First check HTTPS
-      if (window.location.protocol !== "https:") {
-        window.location.href = `https://${window.location.host}${window.location.pathname}`;
-        return;
+      // First ensure MetaMask is installed
+      if (!window.ethereum) {
+        throw new Error("MetaMask not installed");
       }
 
-      const connection = await connectWallet();
-      // Rest of logic...
+      // Request account access if needed
+      const accounts = await window.ethereum
+        .request({
+          method: "eth_requestAccounts",
+        })
+        .catch((err) => {
+          // User rejected request
+          if (err.code === 4001) {
+            throw new Error("Please connect to MetaMask");
+          }
+          throw err;
+        });
+
+      if (!accounts || accounts.length === 0) {
+        throw new Error("No accounts found");
+      }
+
+      // Create provider and signer
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+
+      // Verify we can get address
+      const address = await signer.getAddress();
+      if (!address) {
+        throw new Error("Could not get account address");
+      }
+
+      // Get signature
+      const signature = await signer
+        .signMessage("Access file encryption key")
+        .catch((err) => {
+          throw new Error("Signing rejected: " + err.message);
+        });
+
+      setWalletAddress(address);
+      setUserSignature(signature);
+      return { address, signature, provider, signer };
     } catch (err) {
-      setUploadError(
-        err.message.includes("user rejected")
-          ? "Connection cancelled"
-          : "Wallet connection failed: " + err.message,
-      );
+      let errorMessage = "Wallet connection failed";
+      if (err.code === -32002) {
+        errorMessage =
+          "MetaMask is already processing. Please check your wallet";
+      } else if (err.message.includes("getAddress")) {
+        errorMessage = "Please unlock MetaMask and try again";
+      } else {
+        errorMessage = err.message;
+      }
+
+      setUploadError(errorMessage);
+      return null;
     } finally {
       setConnectingWallet(false);
     }
