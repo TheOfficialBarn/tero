@@ -290,7 +290,7 @@ export function PatientsList() {
                         </button>
                         <button 
                           onClick={handleCancel}
-                          className="px-3 py-1 bg-white/50 rounded-lg hover:bg-blue-600 transition-colors"
+                          className="px-3 py-1 bg-white/50 rounded-lg hover:bg-neutral-300/50 transition-colors"
                         >
                           Cancel
                         </button>
