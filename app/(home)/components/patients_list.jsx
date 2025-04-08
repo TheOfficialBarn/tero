@@ -135,27 +135,26 @@ export function PatientsList() {
         </div>
       ) : (
         <ul
-          className={`space-y-4 bg-gradient-to-b from-neutral-800/30 to-neutral-600/30 dark:from-neutral-800/90 dark:to-neutral-700/90 rounded-xl shadow-xl ${
-            !selectedUser && "divide-y-2 divide-neutral-300/30 dark:divide-neutral-600"}`
-          }
+          className={`bg-gradient-to-b from-neutral-800/30 to-neutral-600/30 dark:from-neutral-800/90 dark:to-neutral-700/90 rounded-xl shadow-xl ${
+            !selectedUser ? "divide-y-2 divide-neutral-300/30 dark:divide-neutral-600" : ""
+          }`}
         >
           {checkedInUsers.map((patient) => (
             <li 
               key={patient.id} 
-              className="overflow-hidden"
+              className="overflow-hidden first:rounded-t-xl last:rounded-b-xl"
             >
               <div 
                 onClick={() => handleUserClick(patient)}
-                className="p-4 hover:bg-neutral-700/60 dark:hover:bg-neutral-600/90 cursor-pointer flex justify-between gap-15 items-center transition-colors duration-200"
+                className="p-4 hover:bg-neutral-700/60 dark:hover:bg-neutral-600/90 cursor-pointer flex justify-between gap-4 items-center transition-colors duration-200"
               >
                 <div className="flex items-center gap-3">
                   {/* PFP */}
-                  <div className='bg-gradient-to-b from-neutral-200/40 to-neutral-400/40 dark:from-neutral-400/40 dark:to-neutral-700/40 rounded-full shadow-lg dark:shadow-neutral-900/30 flex items-center justify-center p-0.5 transition-all duration-300 w-8 h-8'>
+                  <div className="bg-gradient-to-b from-neutral-200/40 to-neutral-400/40 dark:from-neutral-400/40 dark:to-neutral-700/40 rounded-full shadow-lg dark:shadow-neutral-900/30 flex items-center justify-center p-0.5 transition-all duration-300 w-8 h-8">
                     <div className="w-full h-full bg-white/50 dark:bg-black/50 rounded-full flex items-center justify-center text-blue-500 font-medium">
                       {(patient.name?.charAt(0) || '?').toUpperCase()}
                     </div>
                   </div>
-
                   {/* Patient Name */}
                   <span className="font-medium text-white">
                     {patient.name || 'Unknown Patient'}
