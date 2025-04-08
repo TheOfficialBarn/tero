@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, arrayRemove } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/context/AuthContext';
 import { inter } from '@/app/fonts';
@@ -89,6 +89,20 @@ export function PatientsList() {
     }
   };
 
+  const handleRemove = async () => {
+    try {
+      // Remove the patient from the checkedInUsers array in the host document
+      const hostDocRef = doc(db, 'hosts', user.uid);
+      await updateDoc(hostDocRef, {
+        checkedInUsers: arrayRemove(selectedUser.id),
+      });
+      setCheckedInUsers(prev => prev.filter(patient => patient.id !== selectedUser.id));
+      setSelectedUser(null);
+    } catch (error) {
+      console.error('Error removing patient:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-8 flex justify-center items-center">
@@ -162,12 +176,28 @@ export function PatientsList() {
                   <div className="p-5 flex justify-between items-center">
                     <h3 className="font-semibold text-lg">Patient Details</h3>
                     {!isEditing && (
-                      <button 
-                        onClick={handleEdit} 
-                        className="px-3 py-1 bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
-                      >
-                        Edit
-                      </button>
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={handleRemove}
+                          title="Remove Patient"
+                          className="p-2 rounded-md bg-red-500 hover:bg-red-600 transition-colors"
+                        >
+                          <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            className="h-5 w-5 text-white" 
+                            viewBox="0 0 20 20" 
+                            fill="currentColor"
+                          >
+                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2h1l.447 8.894A2 2 0 007.447 16h5.106a2 2 0 001.999-1.106L15 6h1a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 6h6l-.447 8H7.447L7 6z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                        <button 
+                          onClick={handleEdit} 
+                          className="px-3 py-1 bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
+                        >
+                          Edit
+                        </button>
+                      </div>
                     )}
                   </div>
                   
