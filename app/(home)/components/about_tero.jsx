@@ -19,7 +19,7 @@ function Welcome() {
         </h1>
         {/* OUR BIRD!!!!!! */}
         <Image src="/tero_512_2.png" alt="Logo" width={180} height={180} priority/>
-        <div className="bg-[rgba(130,130,130,0.5)] rounded-xl p-4">
+        <div className="bg-white/30 backdrop-blur-md dark:bg-white/0 dark:from-neutral-800/50 dark:to-neutral-600/50 dark:bg-gradient-to-b rounded-xl p-4">
           <p className="text-white">
             Skip the front desk—check in fast and let your doctor know you’ve arrived. Get live updates, secure messaging, and personalized care, all from your phone
           </p>
@@ -31,7 +31,7 @@ function Welcome() {
 
 function About() {
   return (
-    <section className="bg-[rgba(130,130,130,0.5)] rounded-3xl p-6 flex flex-col items-center justify-center w-full">
+    <section className="bg-white/30 backdrop-blur-md dark:bg-white/0 dark:from-neutral-800/50 dark:to-neutral-600/50 dark:bg-gradient-to-b rounded-3xl p-6 flex flex-col items-center justify-center w-full sm:w-1/2">
       <h3 className={`text-white text-3xl font-bold mb-4 ${inter.variable}`}> About Us </h3>
       <p className="text-white">
         We are a team of passionate hackers dedicated to solving real-world problems through innovative technology. At HackKU25, we set out to tackle one of the most critical issues in healthcare—reducing medical errors—by streamlining patient check-ins and improving data accuracy. Our team brings expertise in full-stack development, security, and AI, and we thrive on pushing boundaries to create efficient, scalable, and impactful solutions.
@@ -42,7 +42,7 @@ function About() {
 
 function OurMission() {
   return (
-    <section className="bg-[rgba(130,130,130,0.5)] rounded-3xl p-6 flex flex-col items-center justify-center w-full">
+    <section className="bg-white/30 backdrop-blur-md dark:bg-white/0 dark:from-neutral-800/50 dark:to-neutral-600/50 dark:bg-gradient-to-b rounded-3xl p-6 flex flex-col items-center justify-center w-full sm:w-1/2">
       <h3 className={`text-white text-3xl font-bold mb-4 ${inter.variable}`}> Our Mission </h3>
       <p className="text-white">
       Our mission is to redefine the patient check-in experience by eliminating outdated paper forms, minimizing human error, and ensuring that doctors have instant, secure, and accurate patient data at their fingertips. We believe that leveraging NFC, voice recognition, and secure data handling can create a seamless healthcare experience that improves patient outcomes and reduces administrative burdens.

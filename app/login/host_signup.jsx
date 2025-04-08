@@ -13,7 +13,7 @@ export default function HostSignup({
   inter
 }) {
   return (
-    <div className="bg-[rgba(130,130,130,0.5)] rounded-3xl p-6 flex flex-col items-center justify-center w-full sm:w-1/2">
+    <div className="bg-white/30 backdrop-blur-md dark:bg-white/0 dark:from-neutral-800/50 dark:to-neutral-600/50 dark:bg-gradient-to-b rounded-3xl p-6 flex flex-col items-center justify-center w-full sm:w-1/2">
       <h3 className={`text-white text-3xl font-bold mb-4 text-center ${inter.variable}`}>
         Create Account (Host)
       </h3>
