@@ -1,15 +1,10 @@
 "use client";
-import { Inter } from "next/font/google";
+import { inter } from "@/app/fonts";
 import Image from "next/image";
 import { getFirestore, doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import app from "@/lib/firebase";
 import { useState, useEffect, use } from "react";  // Add use to the imports
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
 
 export default function Page({ params }) {
   const unwrappedParams = use(params);  // Unwrap the params Promise

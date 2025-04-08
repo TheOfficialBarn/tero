@@ -1,12 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react";
-
-import { Inter } from "next/font/google";
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
+import { inter } from "@/app/fonts";
 
 
 export function SymptomChecker() {
@@ -109,7 +104,7 @@ export function SymptomChecker() {
     <section className="bg-white/30 backdrop-blur-md dark:bg-white/0 dark:from-neutral-800/50 dark:to-neutral-600/50 dark:bg-gradient-to-b rounded-3xl p-6 flex flex-col items-center justify-center h-5/8 w-full sm:w-1/2">
       <h3 className={`text-white text-3xl font-bold mb-4 ${inter.variable}`}> Symptom Checker </h3>
 
-      <div className="flex flex-col flex-grow max-w-2xl w-full mx-auto bg-gradient-to-b from-neutral-800/30 to-neutral-600/30 dark:from-neutral-800/90 dark:to-neutral-700/90 rounded-xl shadow-lg">
+      <div className="flex flex-col flex-grow max-w-2xl w-full mx-auto bg-gradient-to-b from-neutral-800/30 to-neutral-600/30 dark:from-neutral-800/90 dark:to-neutral-700/90 rounded-xl shadow-xl">
         
         <div ref={scrollToEndRef} className="flex-grow h-0 overflow-y-auto">
           {chatHistory.map((message, index) => (
@@ -122,7 +117,7 @@ export function SymptomChecker() {
                 <div key={index} className={`rounded-xl py-3 px-4 inline-block transition-colors ${
                   message.role==='user' 
                     ? 'bg-blue-500 text-white text-left ml-8 sm:ml-20 rounded-tr-none' 
-                    : 'bg-white/30 dark:bg-white/30 backdrop-blur-md text-white mr-8 sm:mr-20 rounded-tl-none'
+                    : 'bg-white/30 backdrop-blur-md text-white mr-8 sm:mr-20 rounded-tl-none'
                 }`}>
                   <div className="whitespace-pre-line">{part.text}</div>
                 </div>
@@ -155,7 +150,7 @@ export function SymptomChecker() {
             }}
           />
           <button 
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg transition-colors"
+            className="bg-blue-500 hover:bg-blue-600 px-4 py-3 rounded-lg transition-colors"
             type="submit"
           >
             Send

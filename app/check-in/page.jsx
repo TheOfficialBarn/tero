@@ -4,12 +4,7 @@ import { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
-import { Inter } from 'next/font/google';
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  });
+import { inter } from '../fonts';
 
 export default function Page() {
   const { user, loading } = useAuth();

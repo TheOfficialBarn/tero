@@ -1,10 +1,5 @@
 import Image from "next/image";
-
-import { Inter } from "next/font/google";
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
+import { inter } from "@/app/fonts";
 
 function Welcome() {
   return (

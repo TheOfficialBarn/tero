@@ -1,10 +1,6 @@
 'use client';
 
-import { Inter } from "next/font/google";
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
+import { inter } from '../fonts';
 
 import { useState, useEffect } from 'react';
 import { auth } from "@/lib/firebase";

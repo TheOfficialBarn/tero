@@ -1,18 +1,9 @@
-import { Geist, Geist_Mono } from "next/font/google";
+
 import "./globals.css";
 import { PFP } from "./components/pfp";
 import { NavBar } from "./components/navbar";
 import { AuthProvider } from "@/context/AuthContext";
-
-const geistSans = Geist({
-	variable: "--font-geist-sans",
-	subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-	variable: "--font-geist-mono",
-	subsets: ["latin"],
-});
+import { geistSans, geistMono } from "./fonts";
 
 export const metadata = {
 	title: "Tero SMD",

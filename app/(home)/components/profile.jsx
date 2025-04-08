@@ -1,15 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Inter } from "next/font/google";
+import { inter } from "@/app/fonts";
 import { auth, db } from "../../../lib/firebase"; // Import Firebase auth and Firestore
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import Image from "next/image";
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
 
 export function Profile() {
   const [user, setUser] = useState(null); // State to store the logged-in user
@@ -21,25 +16,27 @@ export function Profile() {
 
   // Fetch the logged-in user's profile data
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setLoading(true);
-      if (currentUser) {
-        setUser(currentUser); // Set the logged-in user
-        const userDocRef = doc(db, "users", currentUser.uid); // Reference to the user's Firestore document
-        const userDoc = await getDoc(userDocRef); // Fetch the document
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          setProfileData(data); // Set the profile data
-          setFormData(data); // Initialize form data with current profile data
+    function unsubscribe() {
+      onAuthStateChanged(auth, async (currentUser) => {
+        setLoading(true);
+        if (currentUser) {
+          setUser(currentUser); // Set the logged-in user
+          const userDocRef = doc(db, "users", currentUser.uid); // Reference to the user's Firestore document
+          const userDoc = await getDoc(userDocRef); // Fetch the document
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            setProfileData(data); // Set the profile data
+            setFormData(data); // Initialize form data with current profile data
+          } else {
+            console.log("No such document!");
+          }
         } else {
-          console.log("No such document!");
+          setUser(null); // No user is logged in
+          setProfileData(null); // Clear profile data
         }
-      } else {
-        setUser(null); // No user is logged in
-        setProfileData(null); // Clear profile data
-      }
-      setLoading(false);
-    });
+        setLoading(false);
+      });
+    }
 
     return () => unsubscribe(); // Cleanup the listener on unmount
   }, []);
