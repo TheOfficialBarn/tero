@@ -16,30 +16,27 @@ export function Profile() {
 
   // Fetch the logged-in user's profile data
   useEffect(() => {
-    function unsubscribe() {
-      onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
         setLoading(true);
         if (currentUser) {
-          setUser(currentUser); // Set the logged-in user
-          const userDocRef = doc(db, "users", currentUser.uid); // Reference to the user's Firestore document
-          const userDoc = await getDoc(userDocRef); // Fetch the document
-          if (userDoc.exists()) {
-            const data = userDoc.data();
-            setProfileData(data); // Set the profile data
-            setFormData(data); // Initialize form data with current profile data
-          } else {
-            console.log("No such document!");
-          }
+            setUser(currentUser);
+            const userDocRef = doc(db, "users", currentUser.uid);
+            const userDoc = await getDoc(userDocRef);
+            if (userDoc.exists()) {
+                const data = userDoc.data();
+                setProfileData(data);
+                setFormData(data);
+            } else {
+                console.log("No such document!");
+            }
         } else {
-          setUser(null); // No user is logged in
-          setProfileData(null); // Clear profile data
+            setUser(null);
+            setProfileData(null);
         }
         setLoading(false);
-      });
-    }
-
-    return () => unsubscribe(); // Cleanup the listener on unmount
-  }, []);
+    });
+    return () => unsubscribe();
+}, []);
 
   // Handle form input changes
   const handleChange = (e) => {

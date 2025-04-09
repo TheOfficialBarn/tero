@@ -119,7 +119,7 @@ export default function Page() {
         {hostID && (
           <div className="bg-gray-50 rounded-lg p-4 w-full border border-gray-200">
             <p className="text-gray-500 text-sm font-mono break-all select-text cursor-text">
-              https://tero-seven.vercel.app/nfc-arrival/{hostID}
+              https://terosecuremd.vercel.app/nfc-arrival/{hostID}
             </p>
           </div>
         )}
