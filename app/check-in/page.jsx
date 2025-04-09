@@ -38,7 +38,7 @@ export default function Page() {
   }, [user]);
 
   const copyToClipboard = () => {
-    const baseUrl = 'https://tero-seven.vercel.app/nfc-arrival/';
+    const baseUrl = 'https://terosecuremd.vercel.app/nfc-arrival/';
     const urlWithHostID = hostID ? `${baseUrl}${hostID}` : baseUrl;
     
     // Try modern clipboard API first
